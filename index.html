@@ -1,10 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Jungle Bus Survival</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚌 Jungle Bus Survival</title>
+    <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
-    <h1>🚌 Jungle Bus Survival</h1>
-    <p>Game coming soon...</p>
+    <div id="game-container"></div>
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script type="module" src="src/js/main.js"></script>
 </body>
 </html>
