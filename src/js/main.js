@@ -1,6 +1,6 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
-// Force terrain load + Player spawn
+// Player gravity diye terrain e porbe
 // ============================================
 
 import * as THREE from 'three';
@@ -177,7 +177,7 @@ scene.add(hemiLight);
 // ============================================
 const chunkManager = new ChunkManager(scene, camera);
 
-// ⚡ FORCE LOAD 9 CHUNKS
+// Force load 9 chunks
 console.log('🌍 Force loading chunks...');
 for (let x = -1; x <= 1; x++) {
     for (let z = -1; z <= 1; z++) {
@@ -187,25 +187,22 @@ for (let x = -1; x <= 1; x++) {
 console.log('🌍 Chunks loaded:', chunkManager.getLoadedCount());
 
 // ============================================
-// PLAYER (Terrain e spawn)
+// PLAYER (Upore spawn — gravity porbe)
 // ============================================
 const player = new Player(scene, camera);
 
-// ⚡ Terrain height (0,0) e
-const spawnHeight = chunkManager.getHeight(0, 0);
-console.log('🌍 Spawn height:', spawnHeight);
-
-// ⚡ Player EKDOM terrain e
-player.position.set(0, spawnHeight, 0);
+// ⚡ Player upore spawn (gravity porbe)
+player.position.set(0, 30, 0);
 player.mesh.position.copy(player.position);
-player.groundHeight = spawnHeight;
-player.isGrounded = true;
+player.groundHeight = chunkManager.getHeight(0, 0);
+player.isGrounded = false;  // ⚡ Gravity apply
 player.velocity.y = 0;
 
 // ⚡ Camera player er mathay
-camera.position.set(0, spawnHeight + player.cameraHeight, 0);
+camera.position.set(0, 30 + player.cameraHeight, 0);
 
 console.log('🌍 Player Y:', player.position.y);
+console.log('🌍 Ground Y:', player.groundHeight);
 console.log('🌍 Camera Y:', camera.position.y);
 
 // ============================================
@@ -277,4 +274,4 @@ function animate() {
 
 animate();
 
-console.log('✅ Game ready! Player terrain e spawn');
+console.log('✅ Game ready! Player gravity diye terrain e porbe');
