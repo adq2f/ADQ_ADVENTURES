@@ -1,6 +1,5 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
-// Player gravity diye terrain e porbe
 // ============================================
 
 import * as THREE from 'three';
@@ -13,9 +12,7 @@ console.log('🚌 Jungle Bus Survival started!');
 const isLowDevice = window.innerWidth < 400 ||
                     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
-// ============================================
-// FULLSCREEN
-// ============================================
+// Fullscreen
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', () => {
@@ -23,9 +20,6 @@ if (fullscreenBtn) {
         if (!document.fullscreenElement) {
             if (elem.requestFullscreen) elem.requestFullscreen();
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('portrait').catch(() => {});
-            }
         } else {
             if (document.exitFullscreen) document.exitFullscreen();
             else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
@@ -33,12 +27,10 @@ if (fullscreenBtn) {
     });
 }
 
-// ============================================
-// SCENE
-// ============================================
+// Scene
 const scene = new THREE.Scene();
 
-// SKY
+// Sky
 const skyGeo = new THREE.SphereGeometry(4000, 32, 15);
 const skyMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -74,20 +66,18 @@ const sky = new THREE.Mesh(skyGeo, skyMat);
 sky.renderOrder = -1000;
 scene.add(sky);
 
-// CLOUDS
+// Clouds
 const cloudGroup = new THREE.Group();
 const cloudMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     transparent: true,
     opacity: 0.85,
-    roughness: 1,
-    metalness: 0
+    roughness: 1
 });
 
-function createCloud(x, y, z, scale) {
+for (let i = 0; i < 15; i++) {
     const cloud = new THREE.Group();
-    const count = 5 + Math.floor(Math.random() * 4);
-    for (let i = 0; i < count; i++) {
+    for (let j = 0; j < 5; j++) {
         const sphere = new THREE.Mesh(
             new THREE.SphereGeometry(8 + Math.random() * 6, 8, 6),
             cloudMat
@@ -100,20 +90,14 @@ function createCloud(x, y, z, scale) {
         sphere.scale.y = 0.6;
         cloud.add(sphere);
     }
-    cloud.position.set(x, y, z);
-    cloud.scale.set(scale, scale, scale);
-    return cloud;
-}
-
-for (let i = 0; i < 20; i++) {
     const angle = Math.random() * Math.PI * 2;
     const distance = 300 + Math.random() * 800;
-    const cloud = createCloud(
+    cloud.position.set(
         Math.cos(angle) * distance,
         150 + Math.random() * 100,
-        Math.sin(angle) * distance,
-        0.8 + Math.random() * 1.5
+        Math.sin(angle) * distance
     );
+    cloud.scale.set(0.8 + Math.random() * 1.5, 0.8 + Math.random() * 1.5, 0.8 + Math.random() * 1.5);
     cloudGroup.add(cloud);
 }
 scene.add(cloudGroup);
@@ -121,9 +105,7 @@ scene.add(cloudGroup);
 // Fog
 scene.fog = new THREE.Fog(0x87ceeb, 200, 900);
 
-// ============================================
-// CAMERA
-// ============================================
+// Camera
 const camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
@@ -131,9 +113,7 @@ const camera = new THREE.PerspectiveCamera(
     5000
 );
 
-// ============================================
-// RENDERER
-// ============================================
+// Renderer
 const renderer = new THREE.WebGLRenderer({
     antialias: !isLowDevice,
     powerPreference: 'high-performance'
@@ -149,9 +129,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 const container = document.getElementById('game-container') || document.body;
 container.appendChild(renderer.domElement);
 
-// ============================================
-// LIGHTS
-// ============================================
+// Lights
 const sunLight = new THREE.DirectionalLight(0xfff5e0, 2.5);
 sunLight.position.set(100, 200, 80);
 if (!isLowDevice) {
@@ -164,17 +142,13 @@ if (!isLowDevice) {
     sunLight.shadow.camera.right = 200;
     sunLight.shadow.camera.top = 200;
     sunLight.shadow.camera.bottom = -200;
-    sunLight.shadow.bias = -0.0005;
 }
 scene.add(sunLight);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x4a8a2e, 0.8);
-scene.add(hemiLight);
+scene.add(new THREE.HemisphereLight(0x87ceeb, 0x4a8a2e, 0.8));
 
-// ============================================
-// CHUNK MANAGER
-// ============================================
+// Chunk Manager
 const chunkManager = new ChunkManager(scene, camera);
 
 // Force load 9 chunks
@@ -186,53 +160,38 @@ for (let x = -1; x <= 1; x++) {
 }
 console.log('🌍 Chunks loaded:', chunkManager.getLoadedCount());
 
-// ============================================
-// PLAYER (Upore spawn — gravity porbe)
-// ============================================
+// Player
 const player = new Player(scene, camera);
 
-// ⚡ Player upore spawn (gravity porbe)
-player.position.set(0, 30, 0);
+// ⚡ Player spawn (terrain height + 5)
+const spawnHeight = chunkManager.getHeight(0, 0);
+console.log('🌍 Spawn height:', spawnHeight);
+
+player.position.set(0, spawnHeight + 5, 0);
 player.mesh.position.copy(player.position);
-player.groundHeight = chunkManager.getHeight(0, 0);
-player.isGrounded = false;  // ⚡ Gravity apply
+player.groundHeight = spawnHeight;
+player.isGrounded = false;
 player.velocity.y = 0;
 
 // ⚡ Camera player er mathay
-camera.position.set(0, 30 + player.cameraHeight, 0);
+camera.position.set(0, spawnHeight + 5 + player.cameraHeight, 0);
 
-console.log('🌍 Player Y:', player.position.y);
-console.log('🌍 Ground Y:', player.groundHeight);
-console.log('🌍 Camera Y:', camera.position.y);
-
-// ============================================
 // UI
-// ============================================
 const ui = new UI();
-
 ui.onJump = () => player.jump();
 ui.onRun = (state) => player.isRunning = state;
 ui.onCrouch = (state) => player.isCrouching = state;
 
-// ============================================
-// RESIZE
-// ============================================
+// Resize
 function onResize() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    camera.aspect = width / height;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowDevice ? 1.5 : 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 300));
-if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
 
-// ============================================
-// ANIMATION LOOP
-// ============================================
+// Animate
 let lastTime = performance.now();
 
 function animate() {
@@ -242,7 +201,7 @@ function animate() {
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
-    // Clouds move
+    // Clouds
     cloudGroup.children.forEach((cloud, i) => {
         cloud.position.x += (0.5 + i * 0.05) * delta * 5;
         if (cloud.position.x > 1500) cloud.position.x = -1500;
@@ -264,14 +223,11 @@ function animate() {
 
     player.animate(delta, isMoving);
     player.updateCamera(delta);
-
-    // Update chunks
     chunkManager.update();
 
-    // Render
     renderer.render(scene, camera);
 }
 
 animate();
 
-console.log('✅ Game ready! Player gravity diye terrain e porbe');
+console.log('✅ Game ready!');
