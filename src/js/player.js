@@ -1,5 +1,6 @@
 // ============================================
 // PLAYER - HIGH QUALITY + 1st PERSON VIEW
+// Character HIDDEN + Smooth Geometry
 // ============================================
 
 import * as THREE from 'three';
@@ -38,12 +39,12 @@ export class Player {
         // Create character
         this.mesh = this.createCharacter();
         this.mesh.position.copy(this.position);
-        this.mesh.visible = false; // 1st person — hide character
+        this.mesh.visible = false; // ⚡ 1st person — HIDE character
         this.scene.add(this.mesh);
     }
 
     // ============================================
-    // HIGH QUALITY CHARACTER
+    // HIGH QUALITY CHARACTER (Smooth)
     // ============================================
     createCharacter() {
         const character = new THREE.Group();
@@ -59,7 +60,7 @@ export class Player {
         const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2 });
         const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8a2a2a, roughness: 0.8 });
 
-        // HEAD
+        // HEAD (Sphere)
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), skinMat);
         head.position.y = 4.3;
         head.castShadow = true;
@@ -99,7 +100,7 @@ export class Player {
         mouth.scale.set(1.5, 0.5, 0.5);
         character.add(mouth);
 
-        // TORSO
+        // TORSO (Capsule)
         const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.65, 1.2, 8, 16), shirtMat);
         torso.position.y = 2.8;
         torso.castShadow = true;
@@ -268,7 +269,7 @@ export class Player {
     }
 
     // ============================================
-    // 1st PERSON CAMERA
+    // 1st PERSON CAMERA (Player er mathay)
     // ============================================
     updateCamera(delta) {
         const targetX = this.position.x;
@@ -279,7 +280,7 @@ export class Player {
         this.camera.position.y = targetY;
         this.camera.position.z = targetZ;
 
-        // Look direction
+        // Look direction (player rotation)
         const lookX = this.position.x + Math.sin(this.rotation) * 10;
         const lookZ = this.position.z + Math.cos(this.rotation) * 10;
         const lookY = this.position.y + this.cameraHeight;
