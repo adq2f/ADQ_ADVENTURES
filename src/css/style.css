@@ -2,53 +2,58 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     background: #000;
     font-family: Arial, sans-serif;
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 canvas {
     display: block;
+    width: 100%;
+    height: 100%;
 }
 
-/* Rotate Warning */
-#rotate-warning {
-    display: none;
+#game-container {
+    width: 100vw;
+    height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
+}
+
+/* Fullscreen Button */
+#fullscreen-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.7);
     color: #fff;
-    font-size: 24px;
-    text-align: center;
-    padding-top: 40%;
-    z-index: 9999;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 1000;
+    cursor: pointer;
 }
 
-/* Portrait e warning dekhabe */
-@media (orientation: portrait) {
-    #rotate-warning {
-        display: block;
-    }
-    #game-container {
-        display: none;
-    }
+#fullscreen-btn:active {
+    background: rgba(255, 255, 255, 0.3);
 }
 
-/* Landscape e game dekhabe */
-@media (orientation: landscape) {
-    #rotate-warning {
-        display: none;
-    }
-    #game-container {
-        display: block;
-    }
+/* Fullscreen mode e button hide */
+body.fullscreen #fullscreen-btn {
+    opacity: 0.3;
 }
