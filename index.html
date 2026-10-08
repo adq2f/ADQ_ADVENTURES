@@ -11,9 +11,25 @@
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
+    <!-- Game Container -->
     <div id="game-container"></div>
+
+    <!-- Fullscreen Button -->
     <button id="fullscreen-btn">⛶ Fullscreen</button>
 
+    <!-- Loading Indicator -->
+    <div id="loading">
+        <div class="loader"></div>
+        <p>Loading Game...</p>
+    </div>
+
+    <!-- Error Display -->
+    <div id="error-box" style="display:none;">
+        <h2>⚠️ Error</h2>
+        <p id="error-text"></p>
+    </div>
+
+    <!-- Three.js Import Map -->
     <script type="importmap">
     {
         "imports": {
@@ -21,6 +37,31 @@
         }
     }
     </script>
+
+    <!-- Error Handler -->
+    <script>
+        window.addEventListener('error', (e) => {
+            console.error('❌ Error:', e.message);
+            const box = document.getElementById('error-box');
+            const text = document.getElementById('error-text');
+            if (box && text) {
+                box.style.display = 'block';
+                text.textContent = e.message + ' (line ' + e.lineno + ')';
+            }
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('❌ Promise Error:', e.reason);
+        });
+
+        // Hide loading after 3 sec
+        setTimeout(() => {
+            const loading = document.getElementById('loading');
+            if (loading) loading.style.display = 'none';
+        }, 3000);
+    </script>
+
+    <!-- Main Game Script -->
     <script type="module" src="src/js/main.js"></script>
 </body>
 </html>
