@@ -1,5 +1,6 @@
 // ============================================
 // PLAYER CHARACTER SYSTEM - HIGH DETAIL
+// FIXED: bodyParts undefined error
 // ============================================
 
 import * as THREE from 'three';
@@ -9,32 +10,38 @@ export class Player {
         this.scene = scene;
         this.camera = camera;
 
-        this.position = new THREE.Vector3(0, 50, 0);
+        // Position
+        this.position = new THREE.Vector3(0, 100, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.isGrounded = false;
         this.groundHeight = 0;
 
+        // State
         this.isRunning = false;
         this.isCrouching = false;
         this.isJumping = false;
 
+        // Speed
         this.walkSpeed = 8;
         this.runSpeed = 15;
         this.crouchSpeed = 4;
         this.jumpForce = 12;
         this.gravity = -30;
 
+        // Camera
         this.cameraDistance = 12;
         this.cameraHeight = 5;
         this.cameraAngle = 0;
 
+        // ⚡ IMPORTANT: bodyParts + animTime AGE create koro
+        this.bodyParts = {};
+        this.animTime = 0;
+
+        // Tarpor character create koro
         this.mesh = this.createCharacter();
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
-
-        this.animTime = 0;
-        this.bodyParts = {};
     }
 
     // ============================================
@@ -42,6 +49,9 @@ export class Player {
     // ============================================
     createCharacter() {
         const character = new THREE.Group();
+
+        // ⚡ Safety check (double protection)
+        if (!this.bodyParts) this.bodyParts = {};
 
         const skinMat = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.6 });
         const shirtMat = new THREE.MeshStandardMaterial({ color: 0x2a5a8a, roughness: 0.8 });
