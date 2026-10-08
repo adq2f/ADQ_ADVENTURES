@@ -1,6 +1,5 @@
 // ============================================
-// PLAYER - 1st PERSON + HAND SHOW
-// Head hidden, arms visible
+// PLAYER - 1st PERSON + HAND SHOW (Fixed Size)
 // ============================================
 
 import * as THREE from 'three';
@@ -41,7 +40,7 @@ export class Player {
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
 
-        // ⚡ HIDE HEAD + TORSO + LEGS (arms visible)
+        // Hide body, show arms
         this.hideBodyForFirstPerson();
     }
 
@@ -49,41 +48,34 @@ export class Player {
     // HIDE BODY (only arms visible)
     // ============================================
     hideBodyForFirstPerson() {
-        // Head hide
         if (this.bodyParts.head) this.bodyParts.head.visible = false;
-        
-        // Hair hide
         if (this.bodyParts.hair) this.bodyParts.hair.visible = false;
-        
-        // Torso hide
         if (this.bodyParts.torso) this.bodyParts.torso.visible = false;
-        
-        // Legs hide
         if (this.bodyParts.leftLeg) this.bodyParts.leftLeg.visible = false;
         if (this.bodyParts.rightLeg) this.bodyParts.rightLeg.visible = false;
-        
-        // ⚡ Arms VISIBLE rakho (hand show)
+
         if (this.bodyParts.leftArm) this.bodyParts.leftArm.visible = true;
         if (this.bodyParts.rightArm) this.bodyParts.rightArm.visible = true;
-        
-        // ⚡ Arms ke camera er samne rakho (1st person)
+
         this.positionArmsForFirstPerson();
     }
 
     // ============================================
-    // ARMS POSITION (1st person — samne)
+    // ARMS POSITION (1st person — choto + samne)
     // ============================================
     positionArmsForFirstPerson() {
-        // Left arm — camera er bam pashe
+        // Left arm
         if (this.bodyParts.leftArm) {
             this.bodyParts.leftArm.position.set(-0.5, 3.5, 1.2);
-            this.bodyParts.leftArm.rotation.set(-0.5, 0, -0.3);
+            this.bodyParts.leftArm.rotation.set(-1.0, 0.3, -0.3);
+            this.bodyParts.leftArm.scale.set(0.6, 0.6, 0.6);
         }
-        
-        // Right arm — camera er dan pashe
+
+        // Right arm
         if (this.bodyParts.rightArm) {
             this.bodyParts.rightArm.position.set(0.5, 3.5, 1.2);
-            this.bodyParts.rightArm.rotation.set(-0.5, 0, 0.3);
+            this.bodyParts.rightArm.rotation.set(-1.0, -0.3, 0.3);
+            this.bodyParts.rightArm.scale.set(0.6, 0.6, 0.6);
         }
     }
 
@@ -296,23 +288,20 @@ export class Player {
         this.animTime += delta;
         if (!this.bodyParts.leftArm) return;
 
-        // Arm swing (walking)
         if (isMoving && this.isGrounded) {
             const speed = this.isRunning ? 15 : 8;
             const swing = Math.sin(this.animTime * speed) * 0.2;
-            
-            this.bodyParts.leftArm.rotation.x = -0.5 + swing;
-            this.bodyParts.rightArm.rotation.x = -0.5 - swing;
-        } else {
-            // Idle — arm static
-            this.bodyParts.leftArm.rotation.x = -0.5;
-            this.bodyParts.rightArm.rotation.x = -0.5;
-        }
 
-        // Jump pose
-        if (this.isJumping) {
+            this.bodyParts.leftArm.rotation.x = -1.0 + swing;
+            this.bodyParts.rightArm.rotation.x = -1.0 - swing;
+        } else {
             this.bodyParts.leftArm.rotation.x = -1.0;
             this.bodyParts.rightArm.rotation.x = -1.0;
+        }
+
+        if (this.isJumping) {
+            this.bodyParts.leftArm.rotation.x = -1.5;
+            this.bodyParts.rightArm.rotation.x = -1.5;
         }
     }
 
@@ -328,7 +317,6 @@ export class Player {
         this.camera.position.y = targetY;
         this.camera.position.z = targetZ;
 
-        // Look direction
         const lookX = this.position.x + Math.sin(this.rotation) * 10;
         const lookZ = this.position.z + Math.cos(this.rotation) * 10;
         const lookY = this.position.y + this.cameraHeight;
