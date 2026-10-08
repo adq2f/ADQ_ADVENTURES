@@ -1,74 +1,135 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
-// HIGH QUALITY GRAPHICS
-// Bright + Fog + Smooth Camera + Fullscreen
+// Sky gradient + Clouds + Player + Joystick
 // ============================================
 
 import * as THREE from 'three';
 import { ChunkManager } from './chunk.js';
+import { Player } from './player.js';
+import { UI } from './ui.js';
 
 console.log('🚌 Jungle Bus Survival started!');
 
-// ============================================
-// DEVICE CHECK
-// ============================================
 const isLowDevice = window.innerWidth < 400 ||
                     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
-console.log('📱 Low device mode:', isLowDevice);
-
 // ============================================
-// FULLSCREEN TOGGLE
+// FULLSCREEN
 // ============================================
 const fullscreenBtn = document.getElementById('fullscreen-btn');
-
-fullscreenBtn.addEventListener('click', () => {
-    const elem = document.documentElement;
-    if (!document.fullscreenElement) {
-        if (elem.requestFullscreen) elem.requestFullscreen();
-        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-        else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
-
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('portrait').catch(() => {});
+if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('portrait').catch(() => {});
+            }
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         }
-    } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-});
-
-document.addEventListener('fullscreenchange', () => {
-    if (document.fullscreenElement) document.body.classList.add('fullscreen');
-    else document.body.classList.remove('fullscreen');
-    setTimeout(onResize, 200);
-});
+    });
+}
 
 // ============================================
 // SCENE
 // ============================================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
-// ⚡ FOG (distant objects hide — high quality look)
-scene.fog = new THREE.Fog(
-    0x87ceeb,
-    isLowDevice ? 200 : 250,   // Near
-    isLowDevice ? 500 : 600    // Far
-);
+// ⚡ SKY GRADIENT
+const skyGeo = new THREE.SphereGeometry(1500, 32, 15);
+const skyMat = new THREE.ShaderMaterial({
+    uniforms: {
+        topColor: { value: new THREE.Color(0x0077ff) },
+        bottomColor: { value: new THREE.Color(0x87ceeb) },
+        offset: { value: 100 },
+        exponent: { value: 0.6 }
+    },
+    vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+            float h = normalize(vWorldPosition + offset).y;
+            gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+    `,
+    side: THREE.BackSide
+});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
+
+// ⚡ CLOUDS
+const cloudGroup = new THREE.Group();
+const cloudMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.85,
+    roughness: 1,
+    metalness: 0
+});
+
+function createCloud(x, y, z, scale) {
+    const cloud = new THREE.Group();
+    const count = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(8 + Math.random() * 6, 8, 6),
+            cloudMat
+        );
+        sphere.position.set(
+            (Math.random() - 0.5) * 25,
+            (Math.random() - 0.5) * 5,
+            (Math.random() - 0.5) * 15
+        );
+        sphere.scale.y = 0.6;
+        cloud.add(sphere);
+    }
+    cloud.position.set(x, y, z);
+    cloud.scale.set(scale, scale, scale);
+    return cloud;
+}
+
+for (let i = 0; i < 20; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 300 + Math.random() * 800;
+    const cloud = createCloud(
+        Math.cos(angle) * distance,
+        150 + Math.random() * 100,
+        Math.sin(angle) * distance,
+        0.8 + Math.random() * 1.5
+    );
+    cloudGroup.add(cloud);
+}
+scene.add(cloudGroup);
+
+// ⚡ Fog
+scene.fog = new THREE.Fog(0x87ceeb, 200, 700);
 
 // ============================================
 // CAMERA
 // ============================================
 const camera = new THREE.PerspectiveCamera(
-    70,                                  // FOV (smooth)
+    70,
     window.innerWidth / window.innerHeight,
     0.1,
     2000
 );
 
 // ============================================
-// RENDERER (HIGH QUALITY)
+// RENDERER
 // ============================================
 const renderer = new THREE.WebGLRenderer({
     antialias: !isLowDevice,
@@ -76,28 +137,20 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowDevice ? 1.5 : 2));
-
-// ⚡ Tone mapping (bright + realistic)
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.4;
-
-// ⚡ Shadows
+renderer.toneMappingExposure = 1.5;
 renderer.shadowMap.enabled = !isLowDevice;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-// ⚡ Color space
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-document.getElementById('game-container').appendChild(renderer.domElement);
+const container = document.getElementById('game-container') || document.body;
+container.appendChild(renderer.domElement);
 
 // ============================================
-// LIGHTS (BRIGHT + WARM)
+// LIGHTS
 // ============================================
-
-// ☀️ Sun (main light — warm yellow)
 const sunLight = new THREE.DirectionalLight(0xfff5e0, 2.5);
 sunLight.position.set(100, 200, 80);
-
 if (!isLowDevice) {
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -112,10 +165,7 @@ if (!isLowDevice) {
 }
 scene.add(sunLight);
 
-// ⚡ Ambient light (soft fill)
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
-// ⚡ Hemisphere light (sky + ground color)
 const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x4a8a2e, 0.8);
 scene.add(hemiLight);
 
@@ -125,27 +175,27 @@ scene.add(hemiLight);
 const chunkManager = new ChunkManager(scene, camera);
 
 // ============================================
-// CAMERA STATE (smooth follow)
+// PLAYER
 // ============================================
-const cameraState = {
-    x: 0,
-    y: 30,
-    z: 0,
-    targetX: 0,
-    targetY: 30,
-    targetZ: 0,
-    angle: 0,
-    speed: 40,           // Movement speed (test)
-    rotateSpeed: 0.005   // Camera rotate speed (test)
-};
+const player = new Player(scene, camera);
+player.position.set(0, 50, 0);
+player.mesh.position.copy(player.position);
 
 // ============================================
-// RESIZE HANDLER
+// UI
+// ============================================
+const ui = new UI();
+
+ui.onJump = () => player.jump();
+ui.onRun = (state) => player.isRunning = state;
+ui.onCrouch = (state) => player.isCrouching = state;
+
+// ============================================
+// RESIZE
 // ============================================
 function onResize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
@@ -154,101 +204,57 @@ function onResize() {
 
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 300));
-if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
 
 // ============================================
 // ANIMATION LOOP
 // ============================================
 let lastTime = performance.now();
-let frameCount = 0;
-let fps = 0;
+let cloudTime = 0;
 
 function animate() {
     requestAnimationFrame(animate);
 
     const now = performance.now();
-    const delta = (now - lastTime) / 1000; // seconds
+    const delta = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
 
-    // FPS counter
-    frameCount++;
-    if (frameCount >= 30) {
-        fps = Math.round(1 / delta);
-        frameCount = 0;
+    // ⚡ Cloud movement
+    cloudTime += delta;
+    cloudGroup.children.forEach((cloud, i) => {
+        cloud.position.x += (0.5 + i * 0.05) * delta * 5;
+        if (cloud.position.x > 1500) cloud.position.x = -1500;
+    });
+
+    // ⚡ Camera rotation
+    const cameraRot = ui.getCameraRotation();
+    player.cameraAngle += cameraRot * 2 * delta;
+
+    // ⚡ Player movement
+    const movement = ui.getMovement();
+    const isMoving = Math.abs(movement.x) > 0.1 || Math.abs(movement.z) > 0.1;
+
+    if (isMoving) {
+        const camAngle = player.cameraAngle;
+        const cos = Math.cos(camAngle);
+        const sin = Math.sin(camAngle);
+
+        const worldDir = {
+            x: movement.x * cos - movement.z * sin,
+            z: movement.x * sin + movement.z * cos
+        };
+
+        player.move(worldDir, delta, chunkManager);
+    } else {
+        player.move({ x: 0, z: 0 }, delta, chunkManager);
     }
 
-    // ============================================
-    // ⚡ CAMERA MOVEMENT (TEST - Replace with bus later)
-    // ============================================
-    cameraState.angle += cameraState.rotateSpeed;
-
-    // Circle movement (test — chunk loading dekhar jonno)
-    cameraState.targetX = Math.sin(cameraState.angle) * 300;
-    cameraState.targetZ = Math.cos(cameraState.angle) * 300;
-
-    // ⚡ Smooth follow (lerp)
-    cameraState.x += (cameraState.targetX - cameraState.x) * 0.05;
-    cameraState.z += (cameraState.targetZ - cameraState.z) * 0.05;
-
-    // ⚡ Terrain height follow (mati te hatle mode hobe na)
-    const groundHeight = chunkManager.getHeight(cameraState.x, cameraState.z);
-    cameraState.targetY = groundHeight + 30;
-    cameraState.y += (cameraState.targetY - cameraState.y) * 0.08;
-
-    // Apply to camera
-    camera.position.set(cameraState.x, cameraState.y, cameraState.z);
-
-    // ⚡ Look ahead (smooth rotation)
-    const lookAtX = cameraState.x + Math.sin(cameraState.angle + 0.5) * 20;
-    const lookAtZ = cameraState.z + Math.cos(cameraState.angle + 0.5) * 20;
-    const lookAtY = chunkManager.getHeight(lookAtX, lookAtZ) + 5;
-    camera.lookAt(lookAtX, lookAtY, lookAtZ);
-
-    // ============================================
-    // UPDATE CHUNKS (progressive loading)
-    // ============================================
+    player.animate(delta, isMoving);
+    player.updateCamera(delta);
     chunkManager.update();
 
-    // ============================================
-    // RENDER
-    // ============================================
     renderer.render(scene, camera);
 }
 
 animate();
 
-// ============================================
-// READY
-// ============================================
 console.log('✅ Game ready!');
-console.log('📱 Chunks loaded:', chunkManager.getLoadedCount());
-console.log('⚡ FPS:', fps);
-console.log('🎮 Camera: smooth follow + terrain height');
-
-// ============================================
-// ⚡ BONUS: Touch Rotation (Phone e ghurano)
-// ============================================
-let touchStartX = 0;
-let touchStartY = 0;
-
-document.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-
-    const deltaX = touchX - touchStartX;
-    const deltaY = touchY - touchStartY;
-
-    // Rotate camera
-    cameraState.angle += deltaX * 0.005;
-    cameraState.rotateSpeed = 0; // Stop auto rotate
-
-    touchStartX = touchX;
-    touchStartY = touchY;
-}, { passive: true });
-
-console.log('👆 Touch controls: swipe to rotate');
