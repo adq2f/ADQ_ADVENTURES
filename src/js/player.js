@@ -1,6 +1,5 @@
 // ============================================
-// PLAYER - 1st PERSON + HAND SHOW
-// Gravity diye terrain e porbe
+// PLAYER - Gravity Fix + Ground Collision
 // ============================================
 
 import * as THREE from 'three';
@@ -10,11 +9,11 @@ export class Player {
         this.scene = scene;
         this.camera = camera;
 
-        // ⚡ Position (upore — gravity porbe)
-        this.position = new THREE.Vector3(0, 30, 0);
+        // ⚡ Position (upore)
+        this.position = new THREE.Vector3(0, 20, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
-        this.isGrounded = false;  // ⚡ Gravity apply
+        this.isGrounded = false;
         this.groundHeight = 0;
 
         // State
@@ -26,10 +25,10 @@ export class Player {
         this.walkSpeed = 8;
         this.runSpeed = 15;
         this.crouchSpeed = 4;
-        this.jumpForce = 12;
-        this.gravity = -25;  // ⚡ Gravity
+        this.jumpForce = 10;
+        this.gravity = -15;  // ⚡ Kom gravity
 
-        // Camera (1st person)
+        // Camera
         this.cameraHeight = 4.3;
 
         // Body parts
@@ -41,13 +40,9 @@ export class Player {
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
 
-        // Hide body, show arms
         this.hideBodyForFirstPerson();
     }
 
-    // ============================================
-    // HIDE BODY (only arms visible)
-    // ============================================
     hideBodyForFirstPerson() {
         if (this.bodyParts.head) this.bodyParts.head.visible = false;
         if (this.bodyParts.hair) this.bodyParts.hair.visible = false;
@@ -61,9 +56,6 @@ export class Player {
         this.positionArmsForFirstPerson();
     }
 
-    // ============================================
-    // ARMS POSITION
-    // ============================================
     positionArmsForFirstPerson() {
         if (this.bodyParts.leftArm) {
             this.bodyParts.leftArm.position.set(-0.5, 3.5, 1.2);
@@ -78,9 +70,6 @@ export class Player {
         }
     }
 
-    // ============================================
-    // CHARACTER
-    // ============================================
     createCharacter() {
         const character = new THREE.Group();
         if (!this.bodyParts) this.bodyParts = {};
@@ -230,7 +219,7 @@ export class Player {
     }
 
     // ============================================
-    // MOVE (Gravity diye terrain e porbe)
+    // MOVE (Ground Collision Fix)
     // ============================================
     move(direction, delta, chunkManager) {
         let speed = this.walkSpeed;
@@ -248,14 +237,14 @@ export class Player {
             this.rotation = targetRotation;
         }
 
-        // ⚡ Terrain height (x, z position e)
+        // ⚡ Terrain height (current position e)
         this.groundHeight = chunkManager.getHeight(this.position.x, this.position.z);
 
-        // ⚡ Gravity apply
+        // ⚡ Gravity apply (delta-based)
         this.velocity.y += this.gravity * delta;
         this.position.y += this.velocity.y * delta;
 
-        // ⚡ Ground collision
+        // ⚡ Ground collision (STRICT)
         if (this.position.y <= this.groundHeight) {
             this.position.y = this.groundHeight;
             this.velocity.y = 0;
@@ -265,13 +254,11 @@ export class Player {
             this.isGrounded = false;
         }
 
+        // ⚡ Force mesh position
         this.mesh.position.copy(this.position);
         this.mesh.rotation.y = this.rotation;
     }
 
-    // ============================================
-    // JUMP
-    // ============================================
     jump() {
         if (this.isGrounded && !this.isJumping) {
             this.velocity.y = this.jumpForce;
@@ -280,9 +267,6 @@ export class Player {
         }
     }
 
-    // ============================================
-    // ANIMATE
-    // ============================================
     animate(delta, isMoving) {
         this.animTime += delta;
         if (!this.bodyParts.leftArm) return;
@@ -304,9 +288,6 @@ export class Player {
         }
     }
 
-    // ============================================
-    // 1st PERSON CAMERA
-    // ============================================
     updateCamera(delta) {
         const targetX = this.position.x;
         const targetY = this.position.y + this.cameraHeight;
