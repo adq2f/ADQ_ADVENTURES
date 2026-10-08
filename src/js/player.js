@@ -1,6 +1,5 @@
 // ============================================
-// PLAYER CHARACTER SYSTEM - HIGH DETAIL
-// FIXED: bodyParts undefined error
+// PLAYER - HIGH QUALITY + 1st PERSON VIEW
 // ============================================
 
 import * as THREE from 'three';
@@ -11,7 +10,7 @@ export class Player {
         this.camera = camera;
 
         // Position
-        this.position = new THREE.Vector3(0, 100, 0);
+        this.position = new THREE.Vector3(0, 50, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.isGrounded = false;
@@ -29,28 +28,25 @@ export class Player {
         this.jumpForce = 12;
         this.gravity = -30;
 
-        // Camera
-        this.cameraDistance = 12;
-        this.cameraHeight = 5;
-        this.cameraAngle = 0;
+        // Camera (1st person)
+        this.cameraHeight = 4.3;
 
-        // ⚡ IMPORTANT: bodyParts + animTime AGE create koro
+        // Body parts
         this.bodyParts = {};
         this.animTime = 0;
 
-        // Tarpor character create koro
+        // Create character
         this.mesh = this.createCharacter();
         this.mesh.position.copy(this.position);
+        this.mesh.visible = false; // 1st person — hide character
         this.scene.add(this.mesh);
     }
 
     // ============================================
-    // HIGH DETAIL CHARACTER
+    // HIGH QUALITY CHARACTER
     // ============================================
     createCharacter() {
         const character = new THREE.Group();
-
-        // ⚡ Safety check (double protection)
         if (!this.bodyParts) this.bodyParts = {};
 
         const skinMat = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.6 });
@@ -58,16 +54,13 @@ export class Player {
         const shirtDetailMat = new THREE.MeshStandardMaterial({ color: 0x1a3a5a, roughness: 0.8 });
         const pantsMat = new THREE.MeshStandardMaterial({ color: 0x3a3a4a, roughness: 0.85 });
         const shoeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 });
-        const shoeSoleMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.95 });
         const hairMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0a, roughness: 0.9 });
         const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
         const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2 });
         const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8a2a2a, roughness: 0.8 });
-        const noseMat = new THREE.MeshStandardMaterial({ color: 0xc49464, roughness: 0.7 });
-        const laceMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
 
-        // ===== HEAD =====
-        const head = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.3, 1.3), skinMat);
+        // HEAD
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), skinMat);
         head.position.y = 4.3;
         head.castShadow = true;
         head.receiveShadow = true;
@@ -75,98 +68,76 @@ export class Player {
         this.bodyParts.head = head;
 
         // Hair
-        const hairTop = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.4), hairMat);
-        hairTop.position.y = 4.95;
-        hairTop.castShadow = true;
-        character.add(hairTop);
-
-        const hairBack = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 0.3), hairMat);
-        hairBack.position.set(0, 4.5, -0.65);
-        hairBack.castShadow = true;
-        character.add(hairBack);
+        const hair = new THREE.Mesh(
+            new THREE.SphereGeometry(0.78, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+            hairMat
+        );
+        hair.position.y = 4.35;
+        hair.castShadow = true;
+        character.add(hair);
 
         // Eyes
-        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), eyeWhiteMat);
-        eyeL.position.set(-0.3, 4.4, 0.66);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhiteMat);
+        eyeL.position.set(-0.25, 4.35, 0.65);
         character.add(eyeL);
 
-        const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), eyeWhiteMat);
-        eyeR.position.set(0.3, 4.4, 0.66);
+        const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhiteMat);
+        eyeR.position.set(0.25, 4.35, 0.65);
         character.add(eyeR);
 
-        const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), pupilMat);
-        pupilL.position.set(-0.3, 4.4, 0.78);
+        const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), pupilMat);
+        pupilL.position.set(-0.25, 4.35, 0.75);
         character.add(pupilL);
 
-        const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), pupilMat);
-        pupilR.position.set(0.3, 4.4, 0.78);
+        const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), pupilMat);
+        pupilR.position.set(0.25, 4.35, 0.75);
         character.add(pupilR);
 
-        // Nose
-        const nose = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.2), noseMat);
-        nose.position.set(0, 4.2, 0.72);
-        character.add(nose);
-
         // Mouth
-        const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.1), mouthMat);
-        mouth.position.set(0, 4.0, 0.68);
+        const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), mouthMat);
+        mouth.position.set(0, 4.0, 0.7);
+        mouth.scale.set(1.5, 0.5, 0.5);
         character.add(mouth);
 
-        // Ears
-        const earL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.3), skinMat);
-        earL.position.set(-0.72, 4.3, 0);
-        character.add(earL);
-
-        const earR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 0.3), skinMat);
-        earR.position.set(0.72, 4.3, 0);
-        character.add(earR);
-
-        // ===== TORSO =====
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.9, 1), shirtMat);
+        // TORSO
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.65, 1.2, 8, 16), shirtMat);
         torso.position.y = 2.8;
         torso.castShadow = true;
         torso.receiveShadow = true;
         character.add(torso);
         this.bodyParts.torso = torso;
 
-        const collar = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, 1.1), shirtDetailMat);
+        // Collar
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.1, 8, 16), shirtDetailMat);
         collar.position.y = 3.75;
+        collar.rotation.x = Math.PI / 2;
         character.add(collar);
 
-        const pocket = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.05), shirtDetailMat);
-        pocket.position.set(-0.4, 3.2, 0.52);
-        character.add(pocket);
-
-        // ===== ARMS =====
+        // ARMS
         const createArm = (side) => {
             const arm = new THREE.Group();
 
-            const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.3, 0.55), shirtMat);
-            upperArm.position.y = -0.65;
+            const upperArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.8, 6, 12), shirtMat);
+            upperArm.position.y = -0.6;
             upperArm.castShadow = true;
             arm.add(upperArm);
 
-            const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), shirtDetailMat);
-            elbow.position.y = -1.3;
+            const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), shirtDetailMat);
+            elbow.position.y = -1.2;
             arm.add(elbow);
 
-            const lowerArm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 0.5), skinMat);
-            lowerArm.position.y = -1.85;
+            const lowerArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.7, 6, 12), skinMat);
+            lowerArm.position.y = -1.8;
             lowerArm.castShadow = true;
             arm.add(lowerArm);
 
-            const hand = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.3), skinMat);
-            hand.position.y = -2.5;
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), skinMat);
+            hand.position.y = -2.4;
+            hand.scale.set(1, 0.8, 1.2);
             hand.castShadow = true;
             arm.add(hand);
 
-            for (let i = 0; i < 4; i++) {
-                const finger = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.15), skinMat);
-                finger.position.set(-0.2 + i * 0.13, -2.75, 0.05);
-                arm.add(finger);
-            }
-
-            arm.position.set(side * 1.2, 3.4, 0);
+            arm.position.set(side * 1.05, 3.3, 0);
             return arm;
         };
 
@@ -178,40 +149,35 @@ export class Player {
         character.add(rightArm);
         this.bodyParts.rightArm = rightArm;
 
-        // ===== LEGS =====
+        // LEGS
         const createLeg = (side) => {
             const leg = new THREE.Group();
 
-            const upperLeg = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.5, 0.65), pantsMat);
-            upperLeg.position.y = -0.75;
+            const upperLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 0.9, 6, 12), pantsMat);
+            upperLeg.position.y = -0.7;
             upperLeg.castShadow = true;
             leg.add(upperLeg);
 
-            const knee = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), pantsMat);
-            knee.position.y = -1.5;
+            const knee = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 12), pantsMat);
+            knee.position.y = -1.4;
             leg.add(knee);
 
-            const lowerLeg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.3, 0.6), pantsMat);
-            lowerLeg.position.y = -2.15;
+            const lowerLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.8, 6, 12), pantsMat);
+            lowerLeg.position.y = -2.0;
             lowerLeg.castShadow = true;
             leg.add(lowerLeg);
 
-            const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.45, 1.0), shoeMat);
-            shoe.position.set(0, -3, 0.15);
+            const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.35, 0.95), shoeMat);
+            shoe.position.set(0, -2.85, 0.2);
             shoe.castShadow = true;
             leg.add(shoe);
 
-            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.15, 1.05), shoeSoleMat);
-            sole.position.set(0, -3.22, 0.15);
-            leg.add(sole);
+            const shoeFront = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), shoeMat);
+            shoeFront.position.set(0, -2.85, 0.65);
+            shoeFront.scale.set(1, 0.7, 1);
+            leg.add(shoeFront);
 
-            for (let i = 0; i < 3; i++) {
-                const lace = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.1), laceMat);
-                lace.position.set(0, -2.85 - i * 0.1, 0.5);
-                leg.add(lace);
-            }
-
-            leg.position.set(side * 0.5, 1.9, 0);
+            leg.position.set(side * 0.45, 1.9, 0);
             return leg;
         };
 
@@ -245,11 +211,14 @@ export class Player {
             this.rotation = targetRotation;
         }
 
+        // Terrain height
         this.groundHeight = chunkManager.getHeight(this.position.x, this.position.z);
 
+        // Gravity
         this.velocity.y += this.gravity * delta;
         this.position.y += this.velocity.y * delta;
 
+        // Ground collision
         if (this.position.y <= this.groundHeight) {
             this.position.y = this.groundHeight;
             this.velocity.y = 0;
@@ -279,6 +248,7 @@ export class Player {
     // ============================================
     animate(delta, isMoving) {
         this.animTime += delta;
+        if (!this.bodyParts.leftLeg) return;
 
         if (isMoving && this.isGrounded) {
             const speed = this.isRunning ? 15 : 8;
@@ -288,47 +258,33 @@ export class Player {
             this.bodyParts.rightLeg.rotation.x = -swing;
             this.bodyParts.leftArm.rotation.x = -swing;
             this.bodyParts.rightArm.rotation.x = swing;
-
-            this.bodyParts.torso.position.y = 2.8 + Math.abs(Math.sin(this.animTime * speed)) * 0.1;
-        } else if (this.isJumping) {
-            this.bodyParts.leftArm.rotation.x = -1.5;
-            this.bodyParts.rightArm.rotation.x = -1.5;
-            this.bodyParts.leftLeg.rotation.x = 0.5;
-            this.bodyParts.rightLeg.rotation.x = -0.5;
         } else {
             const idle = Math.sin(this.animTime * 2) * 0.05;
             this.bodyParts.leftArm.rotation.x = idle;
             this.bodyParts.rightArm.rotation.x = -idle;
             this.bodyParts.leftLeg.rotation.x = 0;
             this.bodyParts.rightLeg.rotation.x = 0;
-            this.bodyParts.torso.position.y = 2.8 + Math.sin(this.animTime * 2) * 0.03;
-        }
-
-        if (this.isCrouching) {
-            this.mesh.scale.y = 0.7;
-        } else {
-            this.mesh.scale.y = 1;
         }
     }
 
     // ============================================
-    // CAMERA FOLLOW
+    // 1st PERSON CAMERA
     // ============================================
     updateCamera(delta) {
-        const targetCamX = this.position.x - Math.sin(this.cameraAngle) * this.cameraDistance;
-        const targetCamZ = this.position.z - Math.cos(this.cameraAngle) * this.cameraDistance;
-        const targetCamY = this.position.y + this.cameraHeight;
+        const targetX = this.position.x;
+        const targetY = this.position.y + this.cameraHeight;
+        const targetZ = this.position.z;
 
-        const smoothFactor = 1 - Math.pow(0.001, delta);
-        this.camera.position.x += (targetCamX - this.camera.position.x) * smoothFactor;
-        this.camera.position.y += (targetCamY - this.camera.position.y) * smoothFactor;
-        this.camera.position.z += (targetCamZ - this.camera.position.z) * smoothFactor;
+        this.camera.position.x = targetX;
+        this.camera.position.y = targetY;
+        this.camera.position.z = targetZ;
 
-        this.camera.lookAt(
-            this.position.x,
-            this.position.y + 3,
-            this.position.z
-        );
+        // Look direction
+        const lookX = this.position.x + Math.sin(this.rotation) * 10;
+        const lookZ = this.position.z + Math.cos(this.rotation) * 10;
+        const lookY = this.position.y + this.cameraHeight;
+
+        this.camera.lookAt(lookX, lookY, lookZ);
     }
 
     getPosition() {
