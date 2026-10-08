@@ -1,6 +1,6 @@
 // ============================================
-// PLAYER - HIGH QUALITY + 1st PERSON VIEW
-// Character HIDDEN + Smooth Geometry
+// PLAYER - 1st PERSON + HAND SHOW
+// Head hidden, arms visible
 // ============================================
 
 import * as THREE from 'three';
@@ -11,7 +11,7 @@ export class Player {
         this.camera = camera;
 
         // Position
-        this.position = new THREE.Vector3(0, 50, 0);
+        this.position = new THREE.Vector3(0, 5, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.isGrounded = false;
@@ -39,12 +39,56 @@ export class Player {
         // Create character
         this.mesh = this.createCharacter();
         this.mesh.position.copy(this.position);
-        this.mesh.visible = false; // ⚡ 1st person — HIDE character
         this.scene.add(this.mesh);
+
+        // ⚡ HIDE HEAD + TORSO + LEGS (arms visible)
+        this.hideBodyForFirstPerson();
     }
 
     // ============================================
-    // HIGH QUALITY CHARACTER (Smooth)
+    // HIDE BODY (only arms visible)
+    // ============================================
+    hideBodyForFirstPerson() {
+        // Head hide
+        if (this.bodyParts.head) this.bodyParts.head.visible = false;
+        
+        // Hair hide
+        if (this.bodyParts.hair) this.bodyParts.hair.visible = false;
+        
+        // Torso hide
+        if (this.bodyParts.torso) this.bodyParts.torso.visible = false;
+        
+        // Legs hide
+        if (this.bodyParts.leftLeg) this.bodyParts.leftLeg.visible = false;
+        if (this.bodyParts.rightLeg) this.bodyParts.rightLeg.visible = false;
+        
+        // ⚡ Arms VISIBLE rakho (hand show)
+        if (this.bodyParts.leftArm) this.bodyParts.leftArm.visible = true;
+        if (this.bodyParts.rightArm) this.bodyParts.rightArm.visible = true;
+        
+        // ⚡ Arms ke camera er samne rakho (1st person)
+        this.positionArmsForFirstPerson();
+    }
+
+    // ============================================
+    // ARMS POSITION (1st person — samne)
+    // ============================================
+    positionArmsForFirstPerson() {
+        // Left arm — camera er bam pashe
+        if (this.bodyParts.leftArm) {
+            this.bodyParts.leftArm.position.set(-0.5, 3.5, 1.2);
+            this.bodyParts.leftArm.rotation.set(-0.5, 0, -0.3);
+        }
+        
+        // Right arm — camera er dan pashe
+        if (this.bodyParts.rightArm) {
+            this.bodyParts.rightArm.position.set(0.5, 3.5, 1.2);
+            this.bodyParts.rightArm.rotation.set(-0.5, 0, 0.3);
+        }
+    }
+
+    // ============================================
+    // HIGH QUALITY CHARACTER
     // ============================================
     createCharacter() {
         const character = new THREE.Group();
@@ -60,7 +104,7 @@ export class Player {
         const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2 });
         const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8a2a2a, roughness: 0.8 });
 
-        // HEAD (Sphere)
+        // HEAD
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), skinMat);
         head.position.y = 4.3;
         head.castShadow = true;
@@ -76,6 +120,7 @@ export class Player {
         hair.position.y = 4.35;
         hair.castShadow = true;
         character.add(hair);
+        this.bodyParts.hair = hair;
 
         // Eyes
         const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhiteMat);
@@ -100,7 +145,7 @@ export class Player {
         mouth.scale.set(1.5, 0.5, 0.5);
         character.add(mouth);
 
-        // TORSO (Capsule)
+        // TORSO
         const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.65, 1.2, 8, 16), shirtMat);
         torso.position.y = 2.8;
         torso.castShadow = true;
@@ -249,27 +294,30 @@ export class Player {
     // ============================================
     animate(delta, isMoving) {
         this.animTime += delta;
-        if (!this.bodyParts.leftLeg) return;
+        if (!this.bodyParts.leftArm) return;
 
+        // Arm swing (walking)
         if (isMoving && this.isGrounded) {
             const speed = this.isRunning ? 15 : 8;
-            const swing = Math.sin(this.animTime * speed) * 0.7;
-
-            this.bodyParts.leftLeg.rotation.x = swing;
-            this.bodyParts.rightLeg.rotation.x = -swing;
-            this.bodyParts.leftArm.rotation.x = -swing;
-            this.bodyParts.rightArm.rotation.x = swing;
+            const swing = Math.sin(this.animTime * speed) * 0.2;
+            
+            this.bodyParts.leftArm.rotation.x = -0.5 + swing;
+            this.bodyParts.rightArm.rotation.x = -0.5 - swing;
         } else {
-            const idle = Math.sin(this.animTime * 2) * 0.05;
-            this.bodyParts.leftArm.rotation.x = idle;
-            this.bodyParts.rightArm.rotation.x = -idle;
-            this.bodyParts.leftLeg.rotation.x = 0;
-            this.bodyParts.rightLeg.rotation.x = 0;
+            // Idle — arm static
+            this.bodyParts.leftArm.rotation.x = -0.5;
+            this.bodyParts.rightArm.rotation.x = -0.5;
+        }
+
+        // Jump pose
+        if (this.isJumping) {
+            this.bodyParts.leftArm.rotation.x = -1.0;
+            this.bodyParts.rightArm.rotation.x = -1.0;
         }
     }
 
     // ============================================
-    // 1st PERSON CAMERA (Player er mathay)
+    // 1st PERSON CAMERA
     // ============================================
     updateCamera(delta) {
         const targetX = this.position.x;
@@ -280,7 +328,7 @@ export class Player {
         this.camera.position.y = targetY;
         this.camera.position.z = targetZ;
 
-        // Look direction (player rotation)
+        // Look direction
         const lookX = this.position.x + Math.sin(this.rotation) * 10;
         const lookZ = this.position.z + Math.cos(this.rotation) * 10;
         const lookY = this.position.y + this.cameraHeight;
