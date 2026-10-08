@@ -1,6 +1,6 @@
 // ============================================
 // PLAYER - 1st PERSON + HAND SHOW
-// Player terrain e spawn hobe
+// Gravity diye terrain e porbe
 // ============================================
 
 import * as THREE from 'three';
@@ -10,11 +10,11 @@ export class Player {
         this.scene = scene;
         this.camera = camera;
 
-        // ⚡ Position (terrain e — 0)
-        this.position = new THREE.Vector3(0, 0, 0);
+        // ⚡ Position (upore — gravity porbe)
+        this.position = new THREE.Vector3(0, 30, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
-        this.isGrounded = true;  // ⚡ Terrain e
+        this.isGrounded = false;  // ⚡ Gravity apply
         this.groundHeight = 0;
 
         // State
@@ -27,7 +27,7 @@ export class Player {
         this.runSpeed = 15;
         this.crouchSpeed = 4;
         this.jumpForce = 12;
-        this.gravity = -15;  // ⚡ Kom gravity
+        this.gravity = -25;  // ⚡ Gravity
 
         // Camera (1st person)
         this.cameraHeight = 4.3;
@@ -62,7 +62,7 @@ export class Player {
     }
 
     // ============================================
-    // ARMS POSITION (1st person)
+    // ARMS POSITION
     // ============================================
     positionArmsForFirstPerson() {
         if (this.bodyParts.leftArm) {
@@ -230,7 +230,7 @@ export class Player {
     }
 
     // ============================================
-    // MOVE
+    // MOVE (Gravity diye terrain e porbe)
     // ============================================
     move(direction, delta, chunkManager) {
         let speed = this.walkSpeed;
@@ -248,14 +248,12 @@ export class Player {
             this.rotation = targetRotation;
         }
 
-        // Terrain height
+        // ⚡ Terrain height (x, z position e)
         this.groundHeight = chunkManager.getHeight(this.position.x, this.position.z);
 
-        // ⚡ Gravity (kom)
-        if (!this.isGrounded) {
-            this.velocity.y += this.gravity * delta;
-            this.position.y += this.velocity.y * delta;
-        }
+        // ⚡ Gravity apply
+        this.velocity.y += this.gravity * delta;
+        this.position.y += this.velocity.y * delta;
 
         // ⚡ Ground collision
         if (this.position.y <= this.groundHeight) {
