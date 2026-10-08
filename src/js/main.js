@@ -1,6 +1,5 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
-// Sky + Clouds + Player (1st person) + Joystick
 // ============================================
 
 import * as THREE from 'three';
@@ -38,7 +37,7 @@ if (fullscreenBtn) {
 // ============================================
 const scene = new THREE.Scene();
 
-// SKY SPHERE
+// SKY
 const skyGeo = new THREE.SphereGeometry(4000, 32, 15);
 const skyMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -186,11 +185,14 @@ const player = new Player(scene, camera);
 const spawnHeight = chunkManager.getHeight(0, 0);
 console.log('🌍 Spawn height:', spawnHeight);
 
-player.position.set(0, spawnHeight, 0);
+// ⚡ Player terrain + 2m upore
+const playerStartY = spawnHeight + 2;
+player.position.set(0, playerStartY, 0);
 player.mesh.position.copy(player.position);
+player.groundHeight = spawnHeight;
 
-// ⚡ Camera player er mathay (1st person)
-camera.position.set(0, spawnHeight + player.cameraHeight, 0);
+// ⚡ Camera player er mathay
+camera.position.set(0, playerStartY + player.cameraHeight, 0);
 
 // ============================================
 // UI
@@ -235,11 +237,11 @@ function animate() {
         if (cloud.position.x > 1500) cloud.position.x = -1500;
     });
 
-    // Camera rotation (buttons)
+    // Camera rotation
     const cameraRot = ui.getCameraRotation();
     player.rotation += cameraRot * 2 * delta;
 
-    // Player movement (joystick)
+    // Player movement
     const movement = ui.getMovement();
     const isMoving = Math.abs(movement.x) > 0.1 || Math.abs(movement.z) > 0.1;
 
@@ -261,4 +263,4 @@ function animate() {
 
 animate();
 
-console.log('✅ Game ready! 1st person view');
+console.log('✅ Game ready! 1st person + hands visible');
