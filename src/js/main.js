@@ -2,11 +2,9 @@ import * as THREE from 'three';
 
 console.log('🚌 Jungle Bus Survival started!');
 
-// Scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Sky blue
+scene.background = new THREE.Color(0x87ceeb);
 
-// Camera
 const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -14,9 +12,9 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-// Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Low device
 document.getElementById('game-container').appendChild(renderer.domElement);
 
 // Light
@@ -25,7 +23,7 @@ sunLight.position.set(10, 20, 10);
 scene.add(sunLight);
 scene.add(new THREE.AmbientLight(0x404040));
 
-// Ground (6000m × 6000m)
+// Ground
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(6000, 6000),
     new THREE.MeshStandardMaterial({ color: 0x2d5a1e })
@@ -33,7 +31,7 @@ const ground = new THREE.Mesh(
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// Test cube (red)
+// Test cube
 const cube = new THREE.Mesh(
     new THREE.BoxGeometry(2, 2, 2),
     new THREE.MeshStandardMaterial({ color: 0xff0000 })
@@ -41,18 +39,25 @@ const cube = new THREE.Mesh(
 cube.position.y = 1;
 scene.add(cube);
 
-// Camera position
 camera.position.set(0, 5, 10);
 camera.lookAt(0, 0, 0);
 
-// Resize handler
+// Resize handler (rotation eo kaj korbe)
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Animation loop
+// Orientation change handler
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }, 100);
+});
+
 function animate() {
     requestAnimationFrame(animate);
     cube.rotation.y += 0.01;
