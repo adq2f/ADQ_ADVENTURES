@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { ChunkManager } from './chunk.js';
 
 console.log('🚌 Jungle Bus Survival started!');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 100, 500); // Fog for performance
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -14,42 +16,32 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Low device
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 document.getElementById('game-container').appendChild(renderer.domElement);
 
 // Light
 const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-sunLight.position.set(10, 20, 10);
+sunLight.position.set(100, 200, 100);
 scene.add(sunLight);
-scene.add(new THREE.AmbientLight(0x404040));
+scene.add(new THREE.AmbientLight(0x606060));
 
-// Ground
-const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(6000, 6000),
-    new THREE.MeshStandardMaterial({ color: 0x2d5a1e })
-);
-ground.rotation.x = -Math.PI / 2;
-scene.add(ground);
+// Chunk Manager
+const chunkManager = new ChunkManager(scene, camera);
 
-// Test cube
-const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(2, 2, 2),
-    new THREE.MeshStandardMaterial({ color: 0xff0000 })
-);
-cube.position.y = 1;
-scene.add(cube);
-
-camera.position.set(0, 5, 10);
+// Camera position
+camera.position.set(0, 20, 0);
 camera.lookAt(0, 0, 0);
 
-// Resize handler (rotation eo kaj korbe)
+// Test: Move camera slowly (to test chunk loading)
+let angle = 0;
+
+// Resize
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Orientation change handler
 window.addEventListener('orientationchange', () => {
     setTimeout(() => {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -58,9 +50,19 @@ window.addEventListener('orientationchange', () => {
     }, 100);
 });
 
+// Animation
 function animate() {
     requestAnimationFrame(animate);
-    cube.rotation.y += 0.01;
+    
+    // Test: Camera slowly move (chunk loading test)
+    angle += 0.005;
+    camera.position.x = Math.sin(angle) * 300;
+    camera.position.z = Math.cos(angle) * 300;
+    camera.lookAt(camera.position.x, 0, camera.position.z + 10);
+    
+    // Update chunks
+    chunkManager.update();
+    
     renderer.render(scene, camera);
 }
 animate();
