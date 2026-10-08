@@ -1,5 +1,6 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
+// Force load terrain + Player + UI
 // ============================================
 
 import * as THREE from 'three';
@@ -176,22 +177,31 @@ scene.add(hemiLight);
 // ============================================
 const chunkManager = new ChunkManager(scene, camera);
 
+// ⚡ FORCE LOAD 9 CHUNKS (terrain visible)
+console.log('🌍 Force loading 9 chunks...');
+for (let x = -1; x <= 1; x++) {
+    for (let z = -1; z <= 1; z++) {
+        chunkManager.generateChunk(x, z);
+    }
+}
+console.log('🌍 Chunks loaded:', chunkManager.getLoadedCount());
+
 // ============================================
-// PLAYER (Terrain height e spawn)
+// PLAYER
 // ============================================
 const player = new Player(scene, camera);
 
-// ⚡ Terrain height e spawn
+// Terrain height
 const spawnHeight = chunkManager.getHeight(0, 0);
 console.log('🌍 Spawn height:', spawnHeight);
 
-// ⚡ Player terrain + 2m upore
+// Player terrain + 2m
 const playerStartY = spawnHeight + 2;
 player.position.set(0, playerStartY, 0);
 player.mesh.position.copy(player.position);
 player.groundHeight = spawnHeight;
 
-// ⚡ Camera player er mathay
+// Camera
 camera.position.set(0, playerStartY + player.cameraHeight, 0);
 
 // ============================================
@@ -263,4 +273,4 @@ function animate() {
 
 animate();
 
-console.log('✅ Game ready! 1st person + hands visible');
+console.log('✅ Game ready!');
