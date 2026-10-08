@@ -9,7 +9,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #000;
+    background: #87ceeb;
     font-family: Arial, sans-serif;
     touch-action: none;
     -webkit-user-select: none;
@@ -47,13 +47,14 @@ canvas {
     font-weight: bold;
     z-index: 1000;
     cursor: pointer;
+    font-family: Arial, sans-serif;
 }
 
 #fullscreen-btn:active {
     background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
 }
 
-/* Fullscreen mode e button hide */
 body.fullscreen #fullscreen-btn {
     opacity: 0.3;
 }
