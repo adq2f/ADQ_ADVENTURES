@@ -1,6 +1,7 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - CHUNK SYSTEM
-// HIGH QUALITY - Detailed trees, rocks, road
+// All objects on terrain height (FIXED)
+// Trees + Rocks + Bushes + Road + Grass
 // ============================================
 
 import * as THREE from 'three';
@@ -273,11 +274,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE — NORMAL (Detailed)
+    // TREE — NORMAL (with Y parameter)
     // ============================================
-    createTreeNormal(x, z, scale) {
+    createTreeNormal(x, z, scale, y) {
         const tree = new THREE.Group();
-        const y = this.getHeight(x, z);
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
@@ -324,11 +324,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE — PINE
+    // TREE — PINE (with Y parameter)
     // ============================================
-    createTreePine(x, z, scale) {
+    createTreePine(x, z, scale, y) {
         const tree = new THREE.Group();
-        const y = this.getHeight(x, z);
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
@@ -350,11 +349,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE — PALM
+    // TREE — PALM (with Y parameter)
     // ============================================
-    createTreePalm(x, z, scale) {
+    createTreePalm(x, z, scale, y) {
         const tree = new THREE.Group();
-        const y = this.getHeight(x, z);
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
@@ -390,11 +388,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE — AUTUMN
+    // TREE — AUTUMN (with Y parameter)
     // ============================================
-    createTreeAutumn(x, z, scale) {
+    createTreeAutumn(x, z, scale, y) {
         const tree = new THREE.Group();
-        const y = this.getHeight(x, z);
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
@@ -422,11 +419,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE — BUSHY
+    // TREE — BUSHY (with Y parameter)
     // ============================================
-    createTreeBushy(x, z, scale) {
+    createTreeBushy(x, z, scale, y) {
         const tree = new THREE.Group();
-        const y = this.getHeight(x, z);
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
@@ -460,11 +456,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // ROCK (Detailed)
+    // ROCK (with Y parameter)
     // ============================================
-    createRock(x, z, scale) {
+    createRock(x, z, scale, y) {
         const rock = new THREE.Group();
-        const y = this.getHeight(x, z);
         rock.position.set(x, y, z);
         rock.scale.set(scale, scale, scale);
 
@@ -511,11 +506,10 @@ export class ChunkManager {
     }
 
     // ============================================
-    // BUSH (Detailed)
+    // BUSH (with Y parameter)
     // ============================================
-    createBush(x, z, scale) {
+    createBush(x, z, scale, y) {
         const bush = new THREE.Group();
-        const y = this.getHeight(x, z);
         bush.position.set(x, y, z);
         bush.scale.set(scale, scale, scale);
 
@@ -542,15 +536,15 @@ export class ChunkManager {
     }
 
     // ============================================
-    // GRASS PATCH (8 types)
+    // GRASS PATCH (with Y parameter)
     // ============================================
-    createGrassPatch(x, z, count) {
+    createGrassPatch(x, z, count, y) {
         const grass = new THREE.Group();
+        grass.position.set(x, y, z);
 
         for (let i = 0; i < count; i++) {
-            const gx = x + (Math.random() - 0.5) * 10;
-            const gz = z + (Math.random() - 0.5) * 10;
-            const gy = this.getHeight(gx, gz);
+            const gx = (Math.random() - 0.5) * 10;
+            const gz = (Math.random() - 0.5) * 10;
 
             const type = Math.floor(Math.random() * 8);
             let blade;
@@ -566,7 +560,7 @@ export class ChunkManager {
                 case 7: blade = new THREE.Mesh(this.geometries.flower, this.materials.flowerYellow); break;
             }
 
-            blade.position.set(gx, gy + 0.4, gz);
+            blade.position.set(gx, 0.4, gz);
             blade.rotation.y = Math.random() * Math.PI * 2;
             blade.rotation.z = (Math.random() - 0.5) * 0.3;
             grass.add(blade);
@@ -576,14 +570,13 @@ export class ChunkManager {
     }
 
     // ============================================
-    // ROAD (Detailed)
+    // ROAD (with Y parameter)
     // ============================================
-    createRoad(cx, cz) {
+    createRoad(cx, cz, y) {
         const road = new THREE.Group();
-        const size = this.chunkSize;
-        const worldX = cx * size;
-        const worldZ = cz * size;
+        road.position.set(0, y, 0);
 
+        const size = this.chunkSize;
         const segments = 30;
         const segLength = size / segments;
         const roadWidth = 18;
@@ -593,9 +586,9 @@ export class ChunkManager {
             const localX = t * size;
             const localZ = t * size;
 
-            const worldXPos = worldX + localX;
-            const worldZPos = worldZ + localZ;
-            const h = this.getHeight(worldXPos, worldZPos);
+            const worldX = cx * size + localX;
+            const worldZ = cz * size + localZ;
+            const h = this.getHeight(worldX, worldZ) - y;  // ⚡ Relative to road Y
 
             const roadGeo = new THREE.PlaneGeometry(segLength + 1, roadWidth);
             roadGeo.rotateX(-Math.PI / 2);
@@ -640,7 +633,7 @@ export class ChunkManager {
     }
 
     // ============================================
-    // GENERATE CHUNK
+    // GENERATE CHUNK (All objects on terrain height)
     // ============================================
     generateChunk(cx, cz) {
         const key = this.getChunkKey(cx, cz);
@@ -649,25 +642,40 @@ export class ChunkManager {
         const group = new THREE.Group();
         group.position.set(cx * this.chunkSize, 0, cz * this.chunkSize);
 
+        // TERRAIN
         group.add(this.createTerrain(cx, cz));
 
+        // ROAD
         if (this.hasRoad(cx, cz)) {
-            group.add(this.createRoad(cx, cz));
+            // Road center height
+            const roadCenterX = cx * this.chunkSize + this.chunkSize / 2;
+            const roadCenterZ = cz * this.chunkSize + this.chunkSize / 2;
+            const roadY = this.getHeight(roadCenterX, roadCenterZ);
+            group.add(this.createRoad(cx, cz, roadY));
         }
 
+        // GRASS (on terrain)
         const grassCount = this.getRandom(cx, cz, 40, 60);
         for (let i = 0; i < grassCount; i++) {
             const gx = this.getRandom(cx + i * 11, cz + i, 5, this.chunkSize - 5);
             const gz = this.getRandom(cx + i, cz + i * 11, 5, this.chunkSize - 5);
-            group.add(this.createGrassPatch(gx, gz, 10));
+            
+            // World position for height
+            const worldX = cx * this.chunkSize + gx;
+            const worldZ = cz * this.chunkSize + gz;
+            const gy = this.getHeight(worldX, worldZ);
+            
+            group.add(this.createGrassPatch(gx, gz, 10, gy));
         }
 
+        // TREES (on terrain)
         const treeCount = this.getRandom(cx, cz, 15, 30);
         for (let i = 0; i < treeCount; i++) {
             const tx = this.getRandom(cx + i * 3, cz + i, 15, this.chunkSize - 15);
             const tz = this.getRandom(cx + i, cz + i * 3, 15, this.chunkSize - 15);
             const scale = 0.7 + Math.random() * 0.8;
 
+            // ⚡ World position for height
             const worldX = cx * this.chunkSize + tx;
             const worldZ = cz * this.chunkSize + tz;
             const h = this.getHeight(worldX, worldZ);
@@ -675,30 +683,37 @@ export class ChunkManager {
 
             let tree;
             if (h > 30) {
-                tree = r < 0.9 ? this.createTreePine(tx, tz, scale) : this.createTreeNormal(tx, tz, scale);
+                tree = r < 0.9 ? this.createTreePine(tx, tz, scale, h) : this.createTreeNormal(tx, tz, scale, h);
             } else if (h > 15) {
-                if (r < 0.4) tree = this.createTreePine(tx, tz, scale);
-                else if (r < 0.7) tree = this.createTreeNormal(tx, tz, scale);
-                else tree = this.createTreeBushy(tx, tz, scale);
+                if (r < 0.4) tree = this.createTreePine(tx, tz, scale, h);
+                else if (r < 0.7) tree = this.createTreeNormal(tx, tz, scale, h);
+                else tree = this.createTreeBushy(tx, tz, scale, h);
             } else if (h < -5) {
-                tree = r < 0.7 ? this.createTreePalm(tx, tz, scale) : this.createTreeNormal(tx, tz, scale);
+                tree = r < 0.7 ? this.createTreePalm(tx, tz, scale, h) : this.createTreeNormal(tx, tz, scale, h);
             } else {
-                if (r < 0.35) tree = this.createTreeNormal(tx, tz, scale);
-                else if (r < 0.6) tree = this.createTreeBushy(tx, tz, scale);
-                else if (r < 0.85) tree = this.createTreeAutumn(tx, tz, scale);
-                else tree = this.createTreePine(tx, tz, scale);
+                if (r < 0.35) tree = this.createTreeNormal(tx, tz, scale, h);
+                else if (r < 0.6) tree = this.createTreeBushy(tx, tz, scale, h);
+                else if (r < 0.85) tree = this.createTreeAutumn(tx, tz, scale, h);
+                else tree = this.createTreePine(tx, tz, scale, h);
             }
             group.add(tree);
         }
 
+        // BUSHES (on terrain)
         const bushCount = this.getRandom(cx, cz, 10, 20);
         for (let i = 0; i < bushCount; i++) {
             const bx = this.getRandom(cx + i * 7, cz + i, 10, this.chunkSize - 10);
             const bz = this.getRandom(cx + i, cz + i * 7, 10, this.chunkSize - 10);
             const scale = 0.5 + Math.random() * 0.9;
-            group.add(this.createBush(bx, bz, scale));
+            
+            const worldX = cx * this.chunkSize + bx;
+            const worldZ = cz * this.chunkSize + bz;
+            const by = this.getHeight(worldX, worldZ);
+            
+            group.add(this.createBush(bx, bz, scale, by));
         }
 
+        // ROCKS (on terrain)
         const rockCount = this.getRandom(cx, cz, 5, 12);
         for (let i = 0; i < rockCount; i++) {
             const rx = this.getRandom(cx + i * 5, cz + i, 10, this.chunkSize - 10);
@@ -707,11 +722,9 @@ export class ChunkManager {
 
             const worldX = cx * this.chunkSize + rx;
             const worldZ = cz * this.chunkSize + rz;
-            const h = this.getHeight(worldX, worldZ);
+            const ry = this.getHeight(worldX, worldZ);
 
-            if (h > 5 || Math.random() > 0.6) {
-                group.add(this.createRock(rx, rz, scale));
-            }
+            group.add(this.createRock(rx, rz, scale, ry));
         }
 
         this.scene.add(group);
@@ -742,7 +755,7 @@ export class ChunkManager {
     }
 
     // ============================================
-    // UPDATE
+    // UPDATE (Progressive loading)
     // ============================================
     update() {
         const pos = this.camera.position;
