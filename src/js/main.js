@@ -1,7 +1,6 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
 // Sky Gradient + Clouds + Player + Joystick
-// BLUE SCREEN FIXED
 // ============================================
 
 import * as THREE from 'three';
@@ -39,7 +38,7 @@ if (fullscreenBtn) {
 // ============================================
 const scene = new THREE.Scene();
 
-// ⚡ SKY SPHERE (Fixed — no blue screen)
+// SKY SPHERE
 const skyGeo = new THREE.SphereGeometry(4000, 32, 15);
 const skyMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -75,7 +74,7 @@ const sky = new THREE.Mesh(skyGeo, skyMat);
 sky.renderOrder = -1000;
 scene.add(sky);
 
-// ⚡ CLOUDS
+// CLOUDS
 const cloudGroup = new THREE.Group();
 const cloudMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
@@ -119,7 +118,7 @@ for (let i = 0; i < 20; i++) {
 }
 scene.add(cloudGroup);
 
-// ⚡ Fog (sky er sathe match)
+// Fog
 scene.fog = new THREE.Fog(0x87ceeb, 200, 900);
 
 // ============================================
@@ -179,11 +178,17 @@ scene.add(hemiLight);
 const chunkManager = new ChunkManager(scene, camera);
 
 // ============================================
-// PLAYER
+// PLAYER (Terrain height e spawn)
 // ============================================
 const player = new Player(scene, camera);
-player.position.set(0, 100, 0);
+
+// ⚡ Terrain height e spawn
+const spawnHeight = chunkManager.getHeight(0, 0);
+player.position.set(0, spawnHeight + 2, 0);
 player.mesh.position.copy(player.position);
+
+// ⚡ Camera initial position (player er mathay)
+camera.position.set(0, spawnHeight + 4.3, 0);
 
 // ============================================
 // UI (Joystick + Buttons)
@@ -219,34 +224,25 @@ function animate() {
     requestAnimationFrame(animate);
 
     const now = performance.now();
-    const delta = Math.min((now - lastTime) / 1000, 0.1);
+    const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
-    // ⚡ Cloud movement
+    // Cloud movement
     cloudGroup.children.forEach((cloud, i) => {
         cloud.position.x += (0.5 + i * 0.05) * delta * 5;
         if (cloud.position.x > 1500) cloud.position.x = -1500;
     });
 
-    // ⚡ Camera rotation (buttons)
+    // Camera rotation
     const cameraRot = ui.getCameraRotation();
-    player.cameraAngle += cameraRot * 2 * delta;
+    player.rotation += cameraRot * 2 * delta;
 
-    // ⚡ Player movement (joystick)
+    // Player movement
     const movement = ui.getMovement();
     const isMoving = Math.abs(movement.x) > 0.1 || Math.abs(movement.z) > 0.1;
 
     if (isMoving) {
-        const camAngle = player.cameraAngle;
-        const cos = Math.cos(camAngle);
-        const sin = Math.sin(camAngle);
-
-        const worldDir = {
-            x: movement.x * cos - movement.z * sin,
-            z: movement.x * sin + movement.z * cos
-        };
-
-        player.move(worldDir, delta, chunkManager);
+        player.move(movement, delta, chunkManager);
     } else {
         player.move({ x: 0, z: 0 }, delta, chunkManager);
     }
@@ -254,15 +250,16 @@ function animate() {
     player.animate(delta, isMoving);
     player.updateCamera(delta);
 
-    // ⚡ Update chunks
+    // Update chunks
     chunkManager.update();
 
-    // ⚡ Render
+    // Render
     renderer.render(scene, camera);
 }
 
 animate();
 
 console.log('✅ Game ready!');
-console.log('☁️  Clouds loaded:', cloudGroup.children.length);
+console.log('☁️  Clouds:', cloudGroup.children.length);
 console.log('🌍 Sky gradient active');
+console.log('🎮 1st person view');
