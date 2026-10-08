@@ -1,5 +1,6 @@
 // ============================================
-// PLAYER - Gravity Fix + Ground Collision
+// PLAYER - 1st PERSON + HAND SHOW
+// Simple gravity + ground collision
 // ============================================
 
 import * as THREE from 'three';
@@ -9,8 +10,8 @@ export class Player {
         this.scene = scene;
         this.camera = camera;
 
-        // ⚡ Position (upore)
-        this.position = new THREE.Vector3(0, 20, 0);
+        // Position
+        this.position = new THREE.Vector3(0, 30, 0);
         this.rotation = 0;
         this.velocity = new THREE.Vector3(0, 0, 0);
         this.isGrounded = false;
@@ -25,17 +26,17 @@ export class Player {
         this.walkSpeed = 8;
         this.runSpeed = 15;
         this.crouchSpeed = 4;
-        this.jumpForce = 10;
-        this.gravity = -15;  // ⚡ Kom gravity
+        this.jumpForce = 12;
+        this.gravity = -20;
 
         // Camera
         this.cameraHeight = 4.3;
 
-        // Body parts
+        // Body
         this.bodyParts = {};
         this.animTime = 0;
 
-        // Create character
+        // Character
         this.mesh = this.createCharacter();
         this.mesh.position.copy(this.position);
         this.scene.add(this.mesh);
@@ -49,10 +50,8 @@ export class Player {
         if (this.bodyParts.torso) this.bodyParts.torso.visible = false;
         if (this.bodyParts.leftLeg) this.bodyParts.leftLeg.visible = false;
         if (this.bodyParts.rightLeg) this.bodyParts.rightLeg.visible = false;
-
         if (this.bodyParts.leftArm) this.bodyParts.leftArm.visible = true;
         if (this.bodyParts.rightArm) this.bodyParts.rightArm.visible = true;
-
         this.positionArmsForFirstPerson();
     }
 
@@ -62,7 +61,6 @@ export class Player {
             this.bodyParts.leftArm.rotation.set(-1.0, 0.3, -0.3);
             this.bodyParts.leftArm.scale.set(0.6, 0.6, 0.6);
         }
-
         if (this.bodyParts.rightArm) {
             this.bodyParts.rightArm.position.set(0.5, 3.5, 1.2);
             this.bodyParts.rightArm.rotation.set(-1.0, -0.3, 0.3);
@@ -84,15 +82,12 @@ export class Player {
         const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2 });
         const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8a2a2a, roughness: 0.8 });
 
-        // HEAD
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), skinMat);
         head.position.y = 4.3;
         head.castShadow = true;
-        head.receiveShadow = true;
         character.add(head);
         this.bodyParts.head = head;
 
-        // Hair
         const hair = new THREE.Mesh(
             new THREE.SphereGeometry(0.78, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
             hairMat
@@ -102,7 +97,6 @@ export class Player {
         character.add(hair);
         this.bodyParts.hair = hair;
 
-        // Eyes
         const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), eyeWhiteMat);
         eyeL.position.set(-0.25, 4.35, 0.65);
         character.add(eyeL);
@@ -119,50 +113,40 @@ export class Player {
         pupilR.position.set(0.25, 4.35, 0.75);
         character.add(pupilR);
 
-        // Mouth
         const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), mouthMat);
         mouth.position.set(0, 4.0, 0.7);
         mouth.scale.set(1.5, 0.5, 0.5);
         character.add(mouth);
 
-        // TORSO
         const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.65, 1.2, 8, 16), shirtMat);
         torso.position.y = 2.8;
         torso.castShadow = true;
-        torso.receiveShadow = true;
         character.add(torso);
         this.bodyParts.torso = torso;
 
-        // Collar
         const collar = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.1, 8, 16), shirtDetailMat);
         collar.position.y = 3.75;
         collar.rotation.x = Math.PI / 2;
         character.add(collar);
 
-        // ARMS
         const createArm = (side) => {
             const arm = new THREE.Group();
-
             const upperArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.8, 6, 12), shirtMat);
             upperArm.position.y = -0.6;
             upperArm.castShadow = true;
             arm.add(upperArm);
-
             const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), shirtDetailMat);
             elbow.position.y = -1.2;
             arm.add(elbow);
-
             const lowerArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.7, 6, 12), skinMat);
             lowerArm.position.y = -1.8;
             lowerArm.castShadow = true;
             arm.add(lowerArm);
-
             const hand = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), skinMat);
             hand.position.y = -2.4;
             hand.scale.set(1, 0.8, 1.2);
             hand.castShadow = true;
             arm.add(hand);
-
             arm.position.set(side * 1.05, 3.3, 0);
             return arm;
         };
@@ -170,39 +154,31 @@ export class Player {
         const leftArm = createArm(-1);
         character.add(leftArm);
         this.bodyParts.leftArm = leftArm;
-
         const rightArm = createArm(1);
         character.add(rightArm);
         this.bodyParts.rightArm = rightArm;
 
-        // LEGS
         const createLeg = (side) => {
             const leg = new THREE.Group();
-
             const upperLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.25, 0.9, 6, 12), pantsMat);
             upperLeg.position.y = -0.7;
             upperLeg.castShadow = true;
             leg.add(upperLeg);
-
             const knee = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 12), pantsMat);
             knee.position.y = -1.4;
             leg.add(knee);
-
             const lowerLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.8, 6, 12), pantsMat);
             lowerLeg.position.y = -2.0;
             lowerLeg.castShadow = true;
             leg.add(lowerLeg);
-
             const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.35, 0.95), shoeMat);
             shoe.position.set(0, -2.85, 0.2);
             shoe.castShadow = true;
             leg.add(shoe);
-
             const shoeFront = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), shoeMat);
             shoeFront.position.set(0, -2.85, 0.65);
             shoeFront.scale.set(1, 0.7, 1);
             leg.add(shoeFront);
-
             leg.position.set(side * 0.45, 1.9, 0);
             return leg;
         };
@@ -210,7 +186,6 @@ export class Player {
         const leftLeg = createLeg(-1);
         character.add(leftLeg);
         this.bodyParts.leftLeg = leftLeg;
-
         const rightLeg = createLeg(1);
         character.add(rightLeg);
         this.bodyParts.rightLeg = rightLeg;
@@ -219,7 +194,7 @@ export class Player {
     }
 
     // ============================================
-    // MOVE (Ground Collision Fix)
+    // MOVE — Simple gravity
     // ============================================
     move(direction, delta, chunkManager) {
         let speed = this.walkSpeed;
@@ -233,18 +208,17 @@ export class Player {
         this.position.z += moveZ;
 
         if (direction.x !== 0 || direction.z !== 0) {
-            const targetRotation = Math.atan2(direction.x, direction.z);
-            this.rotation = targetRotation;
+            this.rotation = Math.atan2(direction.x, direction.z);
         }
 
-        // ⚡ Terrain height (current position e)
+        // ⚡ Terrain height
         this.groundHeight = chunkManager.getHeight(this.position.x, this.position.z);
 
-        // ⚡ Gravity apply (delta-based)
+        // ⚡ Gravity
         this.velocity.y += this.gravity * delta;
         this.position.y += this.velocity.y * delta;
 
-        // ⚡ Ground collision (STRICT)
+        // ⚡ Ground collision
         if (this.position.y <= this.groundHeight) {
             this.position.y = this.groundHeight;
             this.velocity.y = 0;
@@ -254,7 +228,6 @@ export class Player {
             this.isGrounded = false;
         }
 
-        // ⚡ Force mesh position
         this.mesh.position.copy(this.position);
         this.mesh.rotation.y = this.rotation;
     }
@@ -274,7 +247,6 @@ export class Player {
         if (isMoving && this.isGrounded) {
             const speed = this.isRunning ? 15 : 8;
             const swing = Math.sin(this.animTime * speed) * 0.2;
-
             this.bodyParts.leftArm.rotation.x = -1.0 + swing;
             this.bodyParts.rightArm.rotation.x = -1.0 - swing;
         } else {
@@ -289,19 +261,15 @@ export class Player {
     }
 
     updateCamera(delta) {
-        const targetX = this.position.x;
-        const targetY = this.position.y + this.cameraHeight;
-        const targetZ = this.position.z;
-
-        this.camera.position.x = targetX;
-        this.camera.position.y = targetY;
-        this.camera.position.z = targetZ;
+        this.camera.position.set(
+            this.position.x,
+            this.position.y + this.cameraHeight,
+            this.position.z
+        );
 
         const lookX = this.position.x + Math.sin(this.rotation) * 10;
         const lookZ = this.position.z + Math.cos(this.rotation) * 10;
-        const lookY = this.position.y + this.cameraHeight;
-
-        this.camera.lookAt(lookX, lookY, lookZ);
+        this.camera.lookAt(lookX, this.position.y + this.cameraHeight, lookZ);
     }
 
     getPosition() {
