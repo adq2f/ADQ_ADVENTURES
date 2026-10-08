@@ -1,6 +1,7 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - MAIN
-// Sky gradient + Clouds + Player + Joystick
+// Sky Gradient + Clouds + Player + Joystick
+// BLUE SCREEN FIXED
 // ============================================
 
 import * as THREE from 'three';
@@ -38,8 +39,8 @@ if (fullscreenBtn) {
 // ============================================
 const scene = new THREE.Scene();
 
-// ⚡ SKY GRADIENT
-const skyGeo = new THREE.SphereGeometry(1500, 32, 15);
+// ⚡ SKY SPHERE (Fixed — no blue screen)
+const skyGeo = new THREE.SphereGeometry(4000, 32, 15);
 const skyMat = new THREE.ShaderMaterial({
     uniforms: {
         topColor: { value: new THREE.Color(0x0077ff) },
@@ -66,9 +67,12 @@ const skyMat = new THREE.ShaderMaterial({
             gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
         }
     `,
-    side: THREE.BackSide
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false
 });
 const sky = new THREE.Mesh(skyGeo, skyMat);
+sky.renderOrder = -1000;
 scene.add(sky);
 
 // ⚡ CLOUDS
@@ -115,8 +119,8 @@ for (let i = 0; i < 20; i++) {
 }
 scene.add(cloudGroup);
 
-// ⚡ Fog
-scene.fog = new THREE.Fog(0x87ceeb, 200, 700);
+// ⚡ Fog (sky er sathe match)
+scene.fog = new THREE.Fog(0x87ceeb, 200, 900);
 
 // ============================================
 // CAMERA
@@ -125,7 +129,7 @@ const camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
     0.1,
-    2000
+    5000
 );
 
 // ============================================
@@ -178,11 +182,11 @@ const chunkManager = new ChunkManager(scene, camera);
 // PLAYER
 // ============================================
 const player = new Player(scene, camera);
-player.position.set(0, 50, 0);
+player.position.set(0, 100, 0);
 player.mesh.position.copy(player.position);
 
 // ============================================
-// UI
+// UI (Joystick + Buttons)
 // ============================================
 const ui = new UI();
 
@@ -204,12 +208,12 @@ function onResize() {
 
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 300));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
 
 // ============================================
 // ANIMATION LOOP
 // ============================================
 let lastTime = performance.now();
-let cloudTime = 0;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -219,17 +223,16 @@ function animate() {
     lastTime = now;
 
     // ⚡ Cloud movement
-    cloudTime += delta;
     cloudGroup.children.forEach((cloud, i) => {
         cloud.position.x += (0.5 + i * 0.05) * delta * 5;
         if (cloud.position.x > 1500) cloud.position.x = -1500;
     });
 
-    // ⚡ Camera rotation
+    // ⚡ Camera rotation (buttons)
     const cameraRot = ui.getCameraRotation();
     player.cameraAngle += cameraRot * 2 * delta;
 
-    // ⚡ Player movement
+    // ⚡ Player movement (joystick)
     const movement = ui.getMovement();
     const isMoving = Math.abs(movement.x) > 0.1 || Math.abs(movement.z) > 0.1;
 
@@ -250,11 +253,16 @@ function animate() {
 
     player.animate(delta, isMoving);
     player.updateCamera(delta);
+
+    // ⚡ Update chunks
     chunkManager.update();
 
+    // ⚡ Render
     renderer.render(scene, camera);
 }
 
 animate();
 
 console.log('✅ Game ready!');
+console.log('☁️  Clouds loaded:', cloudGroup.children.length);
+console.log('🌍 Sky gradient active');
