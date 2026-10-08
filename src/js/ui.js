@@ -9,7 +9,6 @@ export class UI {
         this.joystickY = 0;
         this.moveDirection = { x: 0, z: 0 };
 
-        // Callbacks
         this.onJump = null;
         this.onRun = null;
         this.onCrouch = null;
@@ -19,11 +18,7 @@ export class UI {
         this.setupButtons();
     }
 
-    // ============================================
-    // CREATE UI HTML
-    // ============================================
     createUI() {
-        // Joystick
         const joystick = document.createElement('div');
         joystick.id = 'joystick';
         joystick.innerHTML = `
@@ -33,7 +28,6 @@ export class UI {
         `;
         document.body.appendChild(joystick);
 
-        // Buttons
         const buttons = document.createElement('div');
         buttons.id = 'buttons';
         buttons.innerHTML = `
@@ -46,9 +40,6 @@ export class UI {
         document.body.appendChild(buttons);
     }
 
-    // ============================================
-    // JOYSTICK SETUP
-    // ============================================
     setupJoystick() {
         const base = document.getElementById('joystick-base');
         const knob = document.getElementById('joystick-knob');
@@ -91,13 +82,11 @@ export class UI {
 
             knob.style.transform = `translate(${dx}px, ${dy}px)`;
 
-            // Normalize (-1 to 1)
             this.joystickX = dx / maxDistance;
             this.joystickY = dy / maxDistance;
 
-            // Movement direction
             this.moveDirection.x = this.joystickX;
-            this.moveDirection.z = -this.joystickY; // Invert Y
+            this.moveDirection.z = -this.joystickY;
         };
 
         const handleEnd = (e) => {
@@ -111,23 +100,17 @@ export class UI {
             this.moveDirection.z = 0;
         };
 
-        // Touch events
         base.addEventListener('touchstart', handleStart, { passive: false });
         base.addEventListener('touchmove', handleMove, { passive: false });
         base.addEventListener('touchend', handleEnd, { passive: false });
         base.addEventListener('touchcancel', handleEnd, { passive: false });
 
-        // Mouse events (desktop test)
         base.addEventListener('mousedown', handleStart);
         document.addEventListener('mousemove', handleMove);
         document.addEventListener('mouseup', handleEnd);
     }
 
-    // ============================================
-    // BUTTONS SETUP
-    // ============================================
     setupButtons() {
-        // Jump
         const jumpBtn = document.getElementById('btn-jump');
         jumpBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -137,7 +120,6 @@ export class UI {
             if (this.onJump) this.onJump();
         });
 
-        // Run (hold)
         const runBtn = document.getElementById('btn-run');
         runBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -154,7 +136,6 @@ export class UI {
             if (this.onRun) this.onRun(false);
         });
 
-        // Crouch (toggle)
         let crouchState = false;
         const crouchBtn = document.getElementById('btn-crouch');
         crouchBtn.addEventListener('click', () => {
@@ -162,7 +143,6 @@ export class UI {
             if (this.onCrouch) this.onCrouch(crouchState);
         });
 
-        // Camera rotation
         let cameraLeftHeld = false;
         let cameraRightHeld = false;
 
@@ -185,14 +165,10 @@ export class UI {
             cameraRightHeld = false;
         });
 
-        // Store for update
         this.cameraLeftHeld = () => cameraLeftHeld;
         this.cameraRightHeld = () => cameraRightHeld;
     }
 
-    // ============================================
-    // GET MOVEMENT
-    // ============================================
     getMovement() {
         return this.moveDirection;
     }
