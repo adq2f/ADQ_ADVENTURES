@@ -1,7 +1,6 @@
 // ============================================
 // JUNGLE BUS SURVIVAL - CHUNK SYSTEM
-// HIGH QUALITY - Screenshot level graphics
-// Realistic terrain + 5 trees + grass + textures
+// HIGH QUALITY - Detailed trees, rocks, road
 // ============================================
 
 import * as THREE from 'three';
@@ -13,90 +12,82 @@ export class ChunkManager {
 
         this.chunkSize = 200;
         this.segments = 32;
-        this.viewDistance = 1;
+        this.viewDistance = 2;
         this.chunks = new Map();
         this.lastChunkX = null;
         this.lastChunkZ = null;
         this.loadQueue = [];
 
         // ============================================
-        // MATERIALS (High Quality)
+        // MATERIALS
         // ============================================
         this.materials = {
-            // Terrain
-            grass: new THREE.MeshStandardMaterial({ color: 0x4a8a2e, roughness: 0.9 }),
-            grassDark: new THREE.MeshStandardMaterial({ color: 0x3a6a1e, roughness: 0.9 }),
-            dirt: new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.95 }),
-            rockTerrain: new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.85 }),
+            bark: new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.95 }),
+            barkDark: new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.95 }),
+            barkLight: new THREE.MeshStandardMaterial({ color: 0x7a5a3a, roughness: 0.95 }),
 
-            // Trees
-            trunk: new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.9 }),
-            trunkDark: new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 }),
-            trunkLight: new THREE.MeshStandardMaterial({ color: 0x8a6a4a, roughness: 0.9 }),
+            leaf1: new THREE.MeshStandardMaterial({ color: 0x1a5a1a, roughness: 0.8 }),
+            leaf2: new THREE.MeshStandardMaterial({ color: 0x2d7a2d, roughness: 0.8 }),
+            leaf3: new THREE.MeshStandardMaterial({ color: 0x3a9a3a, roughness: 0.8 }),
+            leaf4: new THREE.MeshStandardMaterial({ color: 0x4aaa4a, roughness: 0.8 }),
+            leaf5: new THREE.MeshStandardMaterial({ color: 0x5aba5a, roughness: 0.8 }),
+            leafYellow: new THREE.MeshStandardMaterial({ color: 0xaaaa2a, roughness: 0.8 }),
+            leafRed: new THREE.MeshStandardMaterial({ color: 0xaa3a2a, roughness: 0.8 }),
+            leafPine: new THREE.MeshStandardMaterial({ color: 0x0a4a0a, roughness: 0.9 }),
 
-            // Leaves
-            leafGreen: new THREE.MeshStandardMaterial({ color: 0x2d8a2d, roughness: 0.7 }),
-            leafDark: new THREE.MeshStandardMaterial({ color: 0x1a6a1a, roughness: 0.8 }),
-            leafLight: new THREE.MeshStandardMaterial({ color: 0x4aaa4a, roughness: 0.7 }),
-            leafYellow: new THREE.MeshStandardMaterial({ color: 0xaaaa2a, roughness: 0.7 }),
-            leafRed: new THREE.MeshStandardMaterial({ color: 0xaa3a2a, roughness: 0.7 }),
-            leafPalm: new THREE.MeshStandardMaterial({ color: 0x2a9a5a, roughness: 0.7 }),
-            leafPine: new THREE.MeshStandardMaterial({ color: 0x1a5a1a, roughness: 0.8 }),
+            rock: new THREE.MeshStandardMaterial({ color: 0x7a7a7a, roughness: 0.9, metalness: 0.1 }),
+            rockDark: new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.95 }),
+            rockLight: new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.85 }),
+            rockMoss: new THREE.MeshStandardMaterial({ color: 0x5a7a4a, roughness: 0.9 }),
 
-            // Rocks
-            rock: new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.85, metalness: 0.15 }),
-            rockDark: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }),
+            bush1: new THREE.MeshStandardMaterial({ color: 0x2a7a2a, roughness: 0.8 }),
+            bush2: new THREE.MeshStandardMaterial({ color: 0x1a5a1a, roughness: 0.85 }),
 
-            // Bush
-            bush: new THREE.MeshStandardMaterial({ color: 0x3a9a3a, roughness: 0.8 }),
-            bushDark: new THREE.MeshStandardMaterial({ color: 0x2a7a2a, roughness: 0.8 }),
+            grass1: new THREE.MeshStandardMaterial({ color: 0x4a9a2e, roughness: 0.8 }),
+            grass2: new THREE.MeshStandardMaterial({ color: 0x2d8a2d, roughness: 0.8 }),
+            grass3: new THREE.MeshStandardMaterial({ color: 0x9a9a2a, roughness: 0.8 }),
+            grass4: new THREE.MeshStandardMaterial({ color: 0x1a5a1a, roughness: 0.8 }),
+            grass5: new THREE.MeshStandardMaterial({ color: 0x6aaa3a, roughness: 0.8 }),
+            flowerPink: new THREE.MeshStandardMaterial({ color: 0xda4a8a, roughness: 0.7 }),
+            flowerWhite: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 }),
+            flowerYellow: new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.7 }),
 
-            // ⚡ 5 GRASS TYPES
-            grassGreen1: new THREE.MeshStandardMaterial({ color: 0x4a9a2e, roughness: 0.8 }),
-            grassGreen2: new THREE.MeshStandardMaterial({ color: 0x2d8a2d, roughness: 0.8 }),
-            grassYellow: new THREE.MeshStandardMaterial({ color: 0x9a9a2a, roughness: 0.8 }),
-            grassDark: new THREE.MeshStandardMaterial({ color: 0x1a5a1a, roughness: 0.8 }),
-            grassFlower: new THREE.MeshStandardMaterial({ color: 0xda4a8a, roughness: 0.7 }),
-            grassFlowerWhite: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 })
+            roadDark: new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.98 }),
+            roadEdge: new THREE.MeshStandardMaterial({ color: 0x6a5a3a, roughness: 0.95 })
         };
 
         // ============================================
-        // GEOMETRIES (High Quality)
+        // GEOMETRIES
         // ============================================
         this.geometries = {
-            // Trunks
-            trunk: new THREE.CylinderGeometry(0.4, 0.6, 4, 8),
-            trunkTall: new THREE.CylinderGeometry(0.3, 0.5, 7, 8),
-            trunkThin: new THREE.CylinderGeometry(0.2, 0.3, 5, 6),
-            trunkPalm: new THREE.CylinderGeometry(0.4, 0.5, 8, 6),
+            trunk: new THREE.CylinderGeometry(0.5, 0.7, 5, 8),
+            trunkTall: new THREE.CylinderGeometry(0.4, 0.6, 9, 8),
+            trunkThin: new THREE.CylinderGeometry(0.25, 0.35, 6, 6),
+            trunkPalm: new THREE.CylinderGeometry(0.45, 0.55, 10, 8),
 
-            // Leaves
-            leafSphere: new THREE.SphereGeometry(2.5, 8, 6),
-            leafSphereSmall: new THREE.SphereGeometry(2, 8, 6),
-            leafSphereTiny: new THREE.SphereGeometry(1.5, 8, 6),
-            leafCone: new THREE.ConeGeometry(3, 6, 8),
-            leafConeTall: new THREE.ConeGeometry(2.5, 8, 8),
-            leafPalm: new THREE.ConeGeometry(0.5, 4, 4),
+            leafSphere: new THREE.SphereGeometry(2.8, 8, 6),
+            leafSphereSmall: new THREE.SphereGeometry(2.2, 8, 6),
+            leafSphereTiny: new THREE.SphereGeometry(1.6, 8, 6),
+            leafCone: new THREE.ConeGeometry(3.5, 7, 8),
+            leafConeTall: new THREE.ConeGeometry(3, 9, 8),
+            leafPalm: new THREE.ConeGeometry(0.6, 5, 4),
 
-            // Rocks
-            rock: new THREE.IcosahedronGeometry(1, 1),
-            rockSmall: new THREE.IcosahedronGeometry(0.6, 1),
+            rock: new THREE.IcosahedronGeometry(1.2, 2),
+            rockSmall: new THREE.IcosahedronGeometry(0.7, 1),
 
-            // Bush
-            bush: new THREE.SphereGeometry(1, 6, 4),
+            bush: new THREE.SphereGeometry(1.2, 8, 6),
 
-            // Grass
-            grassBlade: new THREE.ConeGeometry(0.1, 0.8, 4),
-            grassBlade2: new THREE.ConeGeometry(0.15, 1.2, 4),
-            grassFlower: new THREE.SphereGeometry(0.2, 4, 4)
+            grassBlade: new THREE.ConeGeometry(0.12, 1, 4),
+            grassBlade2: new THREE.ConeGeometry(0.18, 1.5, 4),
+            flower: new THREE.SphereGeometry(0.25, 5, 5)
         };
 
-        // ⚡ Ground texture (once)
         this.groundTexture = this.createGroundTexture();
+        this.roadTexture = this.createRoadTexture();
     }
 
     // ============================================
-    // PROCEDURAL GROUND TEXTURE
+    // GROUND TEXTURE
     // ============================================
     createGroundTexture() {
         const canvas = document.createElement('canvas');
@@ -104,37 +95,33 @@ export class ChunkManager {
         canvas.height = 512;
         const ctx = canvas.getContext('2d');
 
-        // Base green
         ctx.fillStyle = '#4a8a2e';
         ctx.fillRect(0, 0, 512, 512);
 
-        // Random grass patches
-        for (let i = 0; i < 5000; i++) {
-            const x = Math.random() * 512;
-            const y = Math.random() * 512;
-            const size = Math.random() * 4 + 1;
-            const shade = Math.random();
-            
-            if (shade < 0.25) {
-                ctx.fillStyle = '#3a6a1e';
-            } else if (shade < 0.5) {
-                ctx.fillStyle = '#5a9a3e';
-            } else if (shade < 0.7) {
-                ctx.fillStyle = '#2d7a2d';
-            } else if (shade < 0.85) {
-                ctx.fillStyle = '#6a5a3a'; // dirt
-            } else {
-                ctx.fillStyle = '#7a9a4a'; // light grass
+        for (let layer = 0; layer < 4; layer++) {
+            const size = 8 - layer * 1.5;
+            const count = 3000 + layer * 2000;
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * 512;
+                const y = Math.random() * 512;
+                const s = Math.random() * size + 1;
+                const shade = Math.random();
+
+                if (shade < 0.2) ctx.fillStyle = '#3a6a1e';
+                else if (shade < 0.4) ctx.fillStyle = '#5a9a3e';
+                else if (shade < 0.55) ctx.fillStyle = '#2d7a2d';
+                else if (shade < 0.7) ctx.fillStyle = '#6a5a3a';
+                else if (shade < 0.85) ctx.fillStyle = '#7a9a4a';
+                else ctx.fillStyle = '#4a7a2e';
+
+                ctx.fillRect(x, y, s, s);
             }
-            
-            ctx.fillRect(x, y, size, size);
         }
 
-        // Small dark dots (detail)
-        for (let i = 0; i < 2000; i++) {
+        for (let i = 0; i < 3000; i++) {
             const x = Math.random() * 512;
             const y = Math.random() * 512;
-            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.2})`;
             ctx.fillRect(x, y, 1, 1);
         }
 
@@ -143,7 +130,54 @@ export class ChunkManager {
         texture.wrapT = THREE.RepeatWrapping;
         texture.repeat.set(25, 25);
         texture.anisotropy = 4;
+        return texture;
+    }
 
+    // ============================================
+    // ROAD TEXTURE
+    // ============================================
+    createRoadTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, 256, 256);
+
+        for (let i = 0; i < 5000; i++) {
+            const x = Math.random() * 256;
+            const y = Math.random() * 256;
+            const s = Math.random() * 3 + 1;
+            const shade = Math.random();
+
+            if (shade < 0.3) ctx.fillStyle = '#1a1a1a';
+            else if (shade < 0.6) ctx.fillStyle = '#3a3a3a';
+            else if (shade < 0.8) ctx.fillStyle = '#4a4a4a';
+            else ctx.fillStyle = '#5a5a5a';
+
+            ctx.fillRect(x, y, s, s);
+        }
+
+        for (let i = 0; i < 20; i++) {
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            let x = Math.random() * 256;
+            let y = Math.random() * 256;
+            ctx.moveTo(x, y);
+            for (let j = 0; j < 5; j++) {
+                x += (Math.random() - 0.5) * 40;
+                y += (Math.random() - 0.5) * 40;
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(8, 8);
         return texture;
     }
 
@@ -162,28 +196,22 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TERRAIN HEIGHT (Multi-octave)
+    // TERRAIN HEIGHT
     // ============================================
     getHeight(worldX, worldZ) {
         let height = 0;
-
-        // Large hills
-        height += Math.sin(worldX * 0.008) * Math.cos(worldZ * 0.008) * 8;
-        // Medium bumps
-        height += Math.sin(worldX * 0.02) * Math.cos(worldZ * 0.02) * 4;
-        // Small bumps
-        height += Math.sin(worldX * 0.05) * Math.cos(worldZ * 0.05) * 1.5;
-        // Tiny detail
-        height += Math.sin(worldX * 0.1) * Math.cos(worldZ * 0.1) * 0.5;
-        // Random
+        height += Math.sin(worldX * 0.002) * Math.cos(worldZ * 0.002) * 40;
+        height += Math.sin(worldX * 0.004) * Math.cos(worldZ * 0.004) * 25;
+        height += Math.sin(worldX * 0.008) * Math.cos(worldZ * 0.008) * 12;
+        height += Math.sin(worldX * 0.02) * Math.cos(worldZ * 0.02) * 5;
+        height += Math.sin(worldX * 0.05) * Math.cos(worldZ * 0.05) * 2;
         const seed = Math.sin(worldX * 12.9898 + worldZ * 78.233) * 43758.5453;
-        height += (seed - Math.floor(seed)) * 2;
-
+        height += (seed - Math.floor(seed)) * 3;
         return height;
     }
 
     // ============================================
-    // TERRAIN MESH (High Quality)
+    // TERRAIN MESH
     // ============================================
     createTerrain(cx, cz) {
         const size = this.chunkSize;
@@ -199,39 +227,27 @@ export class ChunkManager {
         for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i);
             const z = positions.getZ(i);
-
             const worldX = cx * size + x + size / 2;
             const worldZ = cz * size + z + size / 2;
-
             const h = this.getHeight(worldX, worldZ);
             positions.setY(i, h);
 
-            // ⚡ Multi-layer color noise
             const noise1 = Math.sin(worldX * 0.5) * Math.cos(worldZ * 0.5) * 0.5 + 0.5;
             const noise2 = Math.sin(worldX * 2) * Math.cos(worldZ * 2) * 0.5 + 0.5;
             const noise3 = Math.sin(worldX * 8) * Math.cos(worldZ * 8) * 0.5 + 0.5;
 
             let color;
-            if (h > 6) {
-                // High pahar → Rock/snow
-                const mix = noise1 * 0.3 + 0.7;
-                color = new THREE.Color(0xaaaaaa).lerp(new THREE.Color(0xdddddd), mix);
-            } else if (h > 3) {
-                // Medium hill → Dirt/rock
-                const mix = noise2 * 0.5 + 0.5;
-                color = new THREE.Color(0x8a7a5a).lerp(new THREE.Color(0x6a5a3a), mix);
-            } else if (h > -3) {
-                // Jungle → Multi-green
-                const mix = noise3;
-                color = new THREE.Color(0x4a8a2e).lerp(new THREE.Color(0x3a6a1e), mix);
-                // Dirt patches
-                if (noise1 > 0.85) {
-                    color.lerp(new THREE.Color(0x6a5a3a), 0.5);
-                }
+            if (h > 30) {
+                color = new THREE.Color(0xdddddd).lerp(new THREE.Color(0xffffff), noise1);
+            } else if (h > 15) {
+                color = new THREE.Color(0x9a9a9a).lerp(new THREE.Color(0xbbbbbb), noise2);
+            } else if (h > 5) {
+                color = new THREE.Color(0x8a7a5a).lerp(new THREE.Color(0x6a5a3a), noise2);
+            } else if (h > -5) {
+                color = new THREE.Color(0x4a8a2e).lerp(new THREE.Color(0x3a6a1e), noise3);
+                if (noise1 > 0.85) color.lerp(new THREE.Color(0x6a5a3a), 0.5);
             } else {
-                // Valley → Dark green
-                const mix = noise2;
-                color = new THREE.Color(0x2a5a1e).lerp(new THREE.Color(0x1a4a1e), mix);
+                color = new THREE.Color(0x2a5a1e).lerp(new THREE.Color(0x1a4a1e), noise2);
             }
 
             colors.push(color.r, color.g, color.b);
@@ -257,7 +273,7 @@ export class ChunkManager {
     }
 
     // ============================================
-    // TREE TYPE 1: NORMAL TREE
+    // TREE — NORMAL (Detailed)
     // ============================================
     createTreeNormal(x, z, scale) {
         const tree = new THREE.Group();
@@ -265,32 +281,50 @@ export class ChunkManager {
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
-        const trunk = new THREE.Mesh(this.geometries.trunk, this.materials.trunk);
-        trunk.position.y = 2;
+        const trunk = new THREE.Mesh(this.geometries.trunk, this.materials.bark);
+        trunk.position.y = 2.5;
         trunk.castShadow = true;
         trunk.receiveShadow = true;
         tree.add(trunk);
 
-        const leaf1 = new THREE.Mesh(this.geometries.leafSphere, this.materials.leafGreen);
-        leaf1.position.y = 5;
-        leaf1.castShadow = true;
-        tree.add(leaf1);
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2;
+            const branch = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.1, 0.15, 1.5, 5),
+                this.materials.barkDark
+            );
+            branch.position.set(
+                Math.cos(angle) * 0.5,
+                3.5,
+                Math.sin(angle) * 0.5
+            );
+            branch.rotation.z = Math.cos(angle) * 0.5;
+            branch.rotation.x = Math.sin(angle) * 0.5;
+            branch.castShadow = true;
+            tree.add(branch);
+        }
 
-        const leaf2 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafDark);
-        leaf2.position.set(0.8, 7, 0.5);
-        leaf2.castShadow = true;
-        tree.add(leaf2);
+        const leaves = [
+            { geo: this.geometries.leafSphere, mat: this.materials.leaf2, pos: [0, 5.5, 0] },
+            { geo: this.geometries.leafSphereSmall, mat: this.materials.leaf3, pos: [1.2, 6.5, 0.8] },
+            { geo: this.geometries.leafSphereSmall, mat: this.materials.leaf4, pos: [-1.2, 6.2, -0.8] },
+            { geo: this.geometries.leafSphereTiny, mat: this.materials.leaf5, pos: [0.5, 7.5, -0.5] },
+            { geo: this.geometries.leafSphereTiny, mat: this.materials.leaf3, pos: [-0.6, 7.8, 0.6] }
+        ];
 
-        const leaf3 = new THREE.Mesh(this.geometries.leafSphereTiny, this.materials.leafLight);
-        leaf3.position.set(-0.5, 8.5, -0.3);
-        leaf3.castShadow = true;
-        tree.add(leaf3);
+        leaves.forEach(l => {
+            const leaf = new THREE.Mesh(l.geo, l.mat);
+            leaf.position.set(l.pos[0], l.pos[1], l.pos[2]);
+            leaf.castShadow = true;
+            leaf.receiveShadow = true;
+            tree.add(leaf);
+        });
 
         return tree;
     }
 
     // ============================================
-    // TREE TYPE 2: PINE TREE
+    // TREE — PINE
     // ============================================
     createTreePine(x, z, scale) {
         const tree = new THREE.Group();
@@ -298,33 +332,25 @@ export class ChunkManager {
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
-        const trunk = new THREE.Mesh(this.geometries.trunkTall, this.materials.trunkDark);
-        trunk.position.y = 3.5;
+        const trunk = new THREE.Mesh(this.geometries.trunkTall, this.materials.barkDark);
+        trunk.position.y = 4.5;
         trunk.castShadow = true;
         tree.add(trunk);
 
-        const cone1 = new THREE.Mesh(this.geometries.leafCone, this.materials.leafPine);
-        cone1.position.y = 6;
-        cone1.castShadow = true;
-        tree.add(cone1);
-
-        const cone2 = new THREE.Mesh(this.geometries.leafCone, this.materials.leafPine);
-        cone2.position.y = 9;
-        cone2.scale.set(0.8, 0.8, 0.8);
-        cone2.castShadow = true;
-        tree.add(cone2);
-
-        const cone3 = new THREE.Mesh(this.geometries.leafConeTall, this.materials.leafDark);
-        cone3.position.y = 12;
-        cone3.scale.set(0.6, 0.6, 0.6);
-        cone3.castShadow = true;
-        tree.add(cone3);
+        for (let i = 0; i < 5; i++) {
+            const cone = new THREE.Mesh(this.geometries.leafCone, this.materials.leafPine);
+            cone.position.y = 5 + i * 1.8;
+            const s = 1 - i * 0.15;
+            cone.scale.set(s, s, s);
+            cone.castShadow = true;
+            tree.add(cone);
+        }
 
         return tree;
     }
 
     // ============================================
-    // TREE TYPE 3: PALM TREE
+    // TREE — PALM
     // ============================================
     createTreePalm(x, z, scale) {
         const tree = new THREE.Group();
@@ -332,35 +358,39 @@ export class ChunkManager {
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
-        const trunk = new THREE.Mesh(this.geometries.trunkPalm, this.materials.trunkLight);
-        trunk.position.y = 4;
-        trunk.castShadow = true;
-        tree.add(trunk);
-
         for (let i = 0; i < 6; i++) {
-            const angle = (i / 6) * Math.PI * 2;
-            const leaf = new THREE.Mesh(this.geometries.leafPalm, this.materials.leafPalm);
-            leaf.position.set(
-                Math.cos(angle) * 2,
-                8.5,
-                Math.sin(angle) * 2
+            const seg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.4 - i * 0.02, 0.45 - i * 0.02, 1.8, 8),
+                this.materials.barkLight
             );
-            leaf.rotation.z = Math.PI / 2;
+            seg.position.set(
+                Math.sin(i * 0.3) * 0.3,
+                i * 1.7 + 1,
+                Math.cos(i * 0.3) * 0.2
+            );
+            seg.castShadow = true;
+            tree.add(seg);
+        }
+
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const leaf = new THREE.Mesh(this.geometries.leafPalm, this.materials.leaf3);
+            leaf.position.set(
+                Math.cos(angle) * 2.5,
+                11,
+                Math.sin(angle) * 2.5
+            );
+            leaf.rotation.z = Math.PI / 2.2;
             leaf.rotation.y = angle;
             leaf.castShadow = true;
             tree.add(leaf);
         }
 
-        const top = new THREE.Mesh(this.geometries.leafSphereTiny, this.materials.leafPalm);
-        top.position.y = 8.5;
-        top.castShadow = true;
-        tree.add(top);
-
         return tree;
     }
 
     // ============================================
-    // TREE TYPE 4: AUTUMN TREE
+    // TREE — AUTUMN
     // ============================================
     createTreeAutumn(x, z, scale) {
         const tree = new THREE.Group();
@@ -368,31 +398,31 @@ export class ChunkManager {
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
-        const trunk = new THREE.Mesh(this.geometries.trunk, this.materials.trunkDark);
-        trunk.position.y = 2;
+        const trunk = new THREE.Mesh(this.geometries.trunk, this.materials.barkDark);
+        trunk.position.y = 2.5;
         trunk.castShadow = true;
         tree.add(trunk);
 
-        const leaf1 = new THREE.Mesh(this.geometries.leafSphere, this.materials.leafYellow);
-        leaf1.position.y = 5;
-        leaf1.castShadow = true;
-        tree.add(leaf1);
+        const leaves = [
+            { mat: this.materials.leafYellow, pos: [0, 5.5, 0], geo: this.geometries.leafSphere },
+            { mat: this.materials.leafRed, pos: [-1, 6.5, 0.5], geo: this.geometries.leafSphereSmall },
+            { mat: this.materials.leafYellow, pos: [1, 6.5, -0.5], geo: this.geometries.leafSphereSmall },
+            { mat: this.materials.leafRed, pos: [0.5, 7.5, 0.5], geo: this.geometries.leafSphereTiny },
+            { mat: this.materials.leafYellow, pos: [-0.5, 7.8, -0.5], geo: this.geometries.leafSphereTiny }
+        ];
 
-        const leaf2 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafRed);
-        leaf2.position.set(-0.8, 6.5, 0.5);
-        leaf2.castShadow = true;
-        tree.add(leaf2);
-
-        const leaf3 = new THREE.Mesh(this.geometries.leafSphereTiny, this.materials.leafYellow);
-        leaf3.position.set(0.6, 7.5, -0.4);
-        leaf3.castShadow = true;
-        tree.add(leaf3);
+        leaves.forEach(l => {
+            const leaf = new THREE.Mesh(l.geo, l.mat);
+            leaf.position.set(l.pos[0], l.pos[1], l.pos[2]);
+            leaf.castShadow = true;
+            tree.add(leaf);
+        });
 
         return tree;
     }
 
     // ============================================
-    // TREE TYPE 5: BUSHY TREE
+    // TREE — BUSHY
     // ============================================
     createTreeBushy(x, z, scale) {
         const tree = new THREE.Group();
@@ -400,57 +430,37 @@ export class ChunkManager {
         tree.position.set(x, y, z);
         tree.scale.set(scale, scale, scale);
 
-        const trunk = new THREE.Mesh(this.geometries.trunkThin, this.materials.trunk);
-        trunk.position.y = 1.5;
+        const trunk = new THREE.Mesh(this.geometries.trunkThin, this.materials.bark);
+        trunk.position.y = 2;
         trunk.castShadow = true;
         tree.add(trunk);
 
-        const leaf1 = new THREE.Mesh(this.geometries.leafSphere, this.materials.leafGreen);
-        leaf1.position.y = 4;
-        leaf1.scale.set(1.5, 1, 1.5);
-        leaf1.castShadow = true;
-        tree.add(leaf1);
+        const positions = [
+            [0, 5, 0, 1.2],
+            [2.2, 4.5, 0, 1],
+            [-2.2, 4.5, 0, 1],
+            [0, 4.5, 2.2, 1],
+            [0, 4.5, -2.2, 1],
+            [1.2, 5.5, 1.2, 0.8],
+            [-1.2, 5.5, -1.2, 0.8]
+        ];
 
-        const leaf2 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafDark);
-        leaf2.position.set(2, 3.5, 0);
-        leaf2.castShadow = true;
-        tree.add(leaf2);
-
-        const leaf3 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafDark);
-        leaf3.position.set(-2, 3.5, 0);
-        leaf3.castShadow = true;
-        tree.add(leaf3);
-
-        const leaf4 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafLight);
-        leaf4.position.set(0, 3.5, 2);
-        leaf4.castShadow = true;
-        tree.add(leaf4);
-
-        const leaf5 = new THREE.Mesh(this.geometries.leafSphereSmall, this.materials.leafLight);
-        leaf5.position.set(0, 3.5, -2);
-        leaf5.castShadow = true;
-        tree.add(leaf5);
+        positions.forEach((p, i) => {
+            const leaf = new THREE.Mesh(
+                this.geometries.leafSphereSmall,
+                i % 2 === 0 ? this.materials.leaf3 : this.materials.leaf4
+            );
+            leaf.position.set(p[0], p[1], p[2]);
+            leaf.scale.set(p[3], p[3], p[3]);
+            leaf.castShadow = true;
+            tree.add(leaf);
+        });
 
         return tree;
     }
 
     // ============================================
-    // RANDOM TREE (fallback)
-    // ============================================
-    createRandomTree(x, z, scale) {
-        const type = Math.floor(Math.random() * 5);
-        switch(type) {
-            case 0: return this.createTreeNormal(x, z, scale);
-            case 1: return this.createTreePine(x, z, scale);
-            case 2: return this.createTreePalm(x, z, scale);
-            case 3: return this.createTreeAutumn(x, z, scale);
-            case 4: return this.createTreeBushy(x, z, scale);
-            default: return this.createTreeNormal(x, z, scale);
-        }
-    }
-
-    // ============================================
-    // ROCK
+    // ROCK (Detailed)
     // ============================================
     createRock(x, z, scale) {
         const rock = new THREE.Group();
@@ -465,24 +475,43 @@ export class ChunkManager {
         main.receiveShadow = true;
         rock.add(main);
 
-        for (let i = 0; i < 3; i++) {
-            const small = new THREE.Mesh(this.geometries.rockSmall, this.materials.rockDark);
-            const angle = (i / 3) * Math.PI * 2;
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const small = new THREE.Mesh(
+                this.geometries.rockSmall,
+                i % 2 === 0 ? this.materials.rockDark : this.materials.rockLight
+            );
             small.position.set(
-                Math.cos(angle) * 1.5,
-                0.4,
-                Math.sin(angle) * 1.5
+                Math.cos(angle) * 1.8,
+                0.4 + Math.random() * 0.3,
+                Math.sin(angle) * 1.8
             );
             small.rotation.set(Math.random(), Math.random(), Math.random());
             small.castShadow = true;
+            small.receiveShadow = true;
             rock.add(small);
+        }
+
+        if (Math.random() > 0.5) {
+            const moss = new THREE.Mesh(
+                new THREE.SphereGeometry(0.5, 6, 4),
+                this.materials.rockMoss
+            );
+            moss.position.set(
+                (Math.random() - 0.5) * 1.5,
+                1.8,
+                (Math.random() - 0.5) * 1.5
+            );
+            moss.scale.y = 0.3;
+            moss.castShadow = true;
+            rock.add(moss);
         }
 
         return rock;
     }
 
     // ============================================
-    // BUSH
+    // BUSH (Detailed)
     // ============================================
     createBush(x, z, scale) {
         const bush = new THREE.Group();
@@ -490,28 +519,30 @@ export class ChunkManager {
         bush.position.set(x, y, z);
         bush.scale.set(scale, scale, scale);
 
-        const b1 = new THREE.Mesh(this.geometries.bush, this.materials.bush);
-        b1.position.y = 0.8;
-        b1.castShadow = true;
-        bush.add(b1);
+        const positions = [
+            [0, 0.8, 0, 1],
+            [0.9, 0.7, 0.4, 0.8],
+            [-0.7, 0.6, -0.5, 0.7],
+            [0.4, 1.1, -0.6, 0.6],
+            [-0.5, 1, 0.6, 0.65]
+        ];
 
-        const b2 = new THREE.Mesh(this.geometries.bush, this.materials.bushDark);
-        b2.position.set(0.8, 0.6, 0.3);
-        b2.scale.set(0.7, 0.7, 0.7);
-        b2.castShadow = true;
-        bush.add(b2);
-
-        const b3 = new THREE.Mesh(this.geometries.bush, this.materials.bush);
-        b3.position.set(-0.6, 0.5, -0.4);
-        b3.scale.set(0.6, 0.6, 0.6);
-        b3.castShadow = true;
-        bush.add(b3);
+        positions.forEach((p, i) => {
+            const b = new THREE.Mesh(
+                this.geometries.bush,
+                i % 2 === 0 ? this.materials.bush1 : this.materials.bush2
+            );
+            b.position.set(p[0], p[1], p[2]);
+            b.scale.set(p[3], p[3], p[3]);
+            b.castShadow = true;
+            bush.add(b);
+        });
 
         return bush;
     }
 
     // ============================================
-    // 5 TYPES OF GRASS
+    // GRASS PATCH (8 types)
     // ============================================
     createGrassPatch(x, z, count) {
         const grass = new THREE.Group();
@@ -521,29 +552,18 @@ export class ChunkManager {
             const gz = z + (Math.random() - 0.5) * 10;
             const gy = this.getHeight(gx, gz);
 
-            const type = Math.floor(Math.random() * 5);
+            const type = Math.floor(Math.random() * 8);
             let blade;
 
             switch(type) {
-                case 0:
-                    blade = new THREE.Mesh(this.geometries.grassBlade, this.materials.grassGreen1);
-                    blade.scale.set(1, 0.8, 1);
-                    break;
-                case 1:
-                    blade = new THREE.Mesh(this.geometries.grassBlade2, this.materials.grassGreen2);
-                    blade.scale.set(1, 1.5, 1);
-                    break;
-                case 2:
-                    blade = new THREE.Mesh(this.geometries.grassBlade, this.materials.grassYellow);
-                    blade.scale.set(1.2, 1, 1.2);
-                    break;
-                case 3:
-                    blade = new THREE.Mesh(this.geometries.grassBlade2, this.materials.grassDark);
-                    blade.scale.set(0.8, 1.2, 0.8);
-                    break;
-                case 4:
-                    blade = new THREE.Mesh(this.geometries.grassFlower, this.materials.grassFlower);
-                    break;
+                case 0: blade = new THREE.Mesh(this.geometries.grassBlade, this.materials.grass1); break;
+                case 1: blade = new THREE.Mesh(this.geometries.grassBlade2, this.materials.grass2); break;
+                case 2: blade = new THREE.Mesh(this.geometries.grassBlade, this.materials.grass3); blade.scale.set(1.2, 1, 1.2); break;
+                case 3: blade = new THREE.Mesh(this.geometries.grassBlade2, this.materials.grass4); break;
+                case 4: blade = new THREE.Mesh(this.geometries.grassBlade, this.materials.grass5); break;
+                case 5: blade = new THREE.Mesh(this.geometries.flower, this.materials.flowerPink); break;
+                case 6: blade = new THREE.Mesh(this.geometries.flower, this.materials.flowerWhite); break;
+                case 7: blade = new THREE.Mesh(this.geometries.flower, this.materials.flowerYellow); break;
             }
 
             blade.position.set(gx, gy + 0.4, gz);
@@ -556,7 +576,71 @@ export class ChunkManager {
     }
 
     // ============================================
-    // GENERATE CHUNK (SMART DISTRIBUTION)
+    // ROAD (Detailed)
+    // ============================================
+    createRoad(cx, cz) {
+        const road = new THREE.Group();
+        const size = this.chunkSize;
+        const worldX = cx * size;
+        const worldZ = cz * size;
+
+        const segments = 30;
+        const segLength = size / segments;
+        const roadWidth = 18;
+
+        for (let i = 0; i < segments; i++) {
+            const t = i / segments;
+            const localX = t * size;
+            const localZ = t * size;
+
+            const worldXPos = worldX + localX;
+            const worldZPos = worldZ + localZ;
+            const h = this.getHeight(worldXPos, worldZPos);
+
+            const roadGeo = new THREE.PlaneGeometry(segLength + 1, roadWidth);
+            roadGeo.rotateX(-Math.PI / 2);
+            const roadMat = new THREE.MeshStandardMaterial({
+                map: this.roadTexture,
+                roughness: 0.98
+            });
+
+            const roadMesh = new THREE.Mesh(roadGeo, roadMat);
+            roadMesh.position.set(localX, h + 0.15, localZ);
+            roadMesh.rotation.y = Math.PI / 4;
+            roadMesh.receiveShadow = true;
+            road.add(roadMesh);
+
+            const edgeGeo = new THREE.PlaneGeometry(segLength + 1, 2);
+            edgeGeo.rotateX(-Math.PI / 2);
+            const edgeMat = this.materials.roadEdge;
+
+            const edgeL = new THREE.Mesh(edgeGeo, edgeMat);
+            edgeL.position.set(localX, h + 0.12, localZ - roadWidth / 2);
+            edgeL.rotation.y = Math.PI / 4;
+            edgeL.receiveShadow = true;
+            road.add(edgeL);
+
+            const edgeR = new THREE.Mesh(edgeGeo, edgeMat);
+            edgeR.position.set(localX, h + 0.12, localZ + roadWidth / 2);
+            edgeR.rotation.y = Math.PI / 4;
+            edgeR.receiveShadow = true;
+            road.add(edgeR);
+        }
+
+        return road;
+    }
+
+    // ============================================
+    // HAS ROAD
+    // ============================================
+    hasRoad(cx, cz) {
+        const seed = Math.sin(cx * 12.9898 + cz * 78.233) * 43758.5453;
+        const rand = seed - Math.floor(seed);
+        return rand > 0.4;
+    }
+
+    // ============================================
+    // GENERATE CHUNK
     // ============================================
     generateChunk(cx, cz) {
         const key = this.getChunkKey(cx, cz);
@@ -565,92 +649,67 @@ export class ChunkManager {
         const group = new THREE.Group();
         group.position.set(cx * this.chunkSize, 0, cz * this.chunkSize);
 
-        // ===== TERRAIN =====
-        const terrain = this.createTerrain(cx, cz);
-        group.add(terrain);
+        group.add(this.createTerrain(cx, cz));
 
-        // ===== GRASS (5 types) =====
-        const grassCount = this.getRandom(cx, cz, 15, 25);
-        for (let i = 0; i < grassCount; i++) {
-            const gx = this.getRandom(cx + i * 11, cz + i, 10, this.chunkSize - 10);
-            const gz = this.getRandom(cx + i, cz + i * 11, 10, this.chunkSize - 10);
-            group.add(this.createGrassPatch(gx, gz, 8));
+        if (this.hasRoad(cx, cz)) {
+            group.add(this.createRoad(cx, cz));
         }
 
-        // ===== TREES (Distribution) =====
-        const treeCount = this.getRandom(cx, cz, 12, 25);
+        const grassCount = this.getRandom(cx, cz, 40, 60);
+        for (let i = 0; i < grassCount; i++) {
+            const gx = this.getRandom(cx + i * 11, cz + i, 5, this.chunkSize - 5);
+            const gz = this.getRandom(cx + i, cz + i * 11, 5, this.chunkSize - 5);
+            group.add(this.createGrassPatch(gx, gz, 10));
+        }
+
+        const treeCount = this.getRandom(cx, cz, 15, 30);
         for (let i = 0; i < treeCount; i++) {
             const tx = this.getRandom(cx + i * 3, cz + i, 15, this.chunkSize - 15);
             const tz = this.getRandom(cx + i, cz + i * 3, 15, this.chunkSize - 15);
-            const scale = 0.6 + Math.random() * 0.8;
+            const scale = 0.7 + Math.random() * 0.8;
 
             const worldX = cx * this.chunkSize + tx;
             const worldZ = cz * this.chunkSize + tz;
-            const height = this.getHeight(worldX, worldZ);
-            const biomeRandom = Math.random();
+            const h = this.getHeight(worldX, worldZ);
+            const r = Math.random();
 
             let tree;
-
-            if (height > 6) {
-                // 🏔️ HIGH PAHAR → 80% Pine
-                if (biomeRandom < 0.8) {
-                    tree = this.createTreePine(tx, tz, scale);
-                } else {
-                    tree = this.createTreeNormal(tx, tz, scale);
-                }
-            } else if (height > 3) {
-                // 🌲 MEDIUM HILL → Mix
-                if (biomeRandom < 0.4) {
-                    tree = this.createTreePine(tx, tz, scale);
-                } else if (biomeRandom < 0.7) {
-                    tree = this.createTreeNormal(tx, tz, scale);
-                } else {
-                    tree = this.createTreeBushy(tx, tz, scale);
-                }
-            } else if (height < -3) {
-                // 🌊 VALLEY → 70% Palm
-                if (biomeRandom < 0.7) {
-                    tree = this.createTreePalm(tx, tz, scale);
-                } else {
-                    tree = this.createTreeNormal(tx, tz, scale);
-                }
+            if (h > 30) {
+                tree = r < 0.9 ? this.createTreePine(tx, tz, scale) : this.createTreeNormal(tx, tz, scale);
+            } else if (h > 15) {
+                if (r < 0.4) tree = this.createTreePine(tx, tz, scale);
+                else if (r < 0.7) tree = this.createTreeNormal(tx, tz, scale);
+                else tree = this.createTreeBushy(tx, tz, scale);
+            } else if (h < -5) {
+                tree = r < 0.7 ? this.createTreePalm(tx, tz, scale) : this.createTreeNormal(tx, tz, scale);
             } else {
-                // 🌳 JUNGLE → Mix
-                if (biomeRandom < 0.4) {
-                    tree = this.createTreeNormal(tx, tz, scale);
-                } else if (biomeRandom < 0.65) {
-                    tree = this.createTreeBushy(tx, tz, scale);
-                } else if (biomeRandom < 0.85) {
-                    tree = this.createTreeAutumn(tx, tz, scale);
-                } else {
-                    tree = this.createTreePine(tx, tz, scale);
-                }
+                if (r < 0.35) tree = this.createTreeNormal(tx, tz, scale);
+                else if (r < 0.6) tree = this.createTreeBushy(tx, tz, scale);
+                else if (r < 0.85) tree = this.createTreeAutumn(tx, tz, scale);
+                else tree = this.createTreePine(tx, tz, scale);
             }
-
             group.add(tree);
         }
 
-        // ===== BUSHES =====
-        const bushCount = this.getRandom(cx, cz, 8, 15);
+        const bushCount = this.getRandom(cx, cz, 10, 20);
         for (let i = 0; i < bushCount; i++) {
             const bx = this.getRandom(cx + i * 7, cz + i, 10, this.chunkSize - 10);
             const bz = this.getRandom(cx + i, cz + i * 7, 10, this.chunkSize - 10);
-            const scale = 0.5 + Math.random() * 0.8;
+            const scale = 0.5 + Math.random() * 0.9;
             group.add(this.createBush(bx, bz, scale));
         }
 
-        // ===== ROCKS (only on hills) =====
-        const rockCount = this.getRandom(cx, cz, 4, 10);
+        const rockCount = this.getRandom(cx, cz, 5, 12);
         for (let i = 0; i < rockCount; i++) {
             const rx = this.getRandom(cx + i * 5, cz + i, 10, this.chunkSize - 10);
             const rz = this.getRandom(cx + i, cz + i * 5, 10, this.chunkSize - 10);
-            const scale = 0.5 + Math.random() * 1.5;
+            const scale = 0.4 + Math.random() * 1.5;
 
             const worldX = cx * this.chunkSize + rx;
             const worldZ = cz * this.chunkSize + rz;
             const h = this.getHeight(worldX, worldZ);
 
-            if (h > 2) {
+            if (h > 5 || Math.random() > 0.6) {
                 group.add(this.createRock(rx, rz, scale));
             }
         }
@@ -676,9 +735,6 @@ export class ChunkManager {
         }
     }
 
-    // ============================================
-    // RANDOM (deterministic)
-    // ============================================
     getRandom(x, z, min, max) {
         const seed = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
         const rand = seed - Math.floor(seed);
@@ -686,7 +742,7 @@ export class ChunkManager {
     }
 
     // ============================================
-    // PROGRESSIVE UPDATE
+    // UPDATE
     // ============================================
     update() {
         const pos = this.camera.position;
@@ -714,11 +770,7 @@ export class ChunkManager {
                 needed.add(key);
 
                 if (!this.chunks.has(key)) {
-                    queue.push({ 
-                        cx: ncx, 
-                        cz: ncz, 
-                        dist: Math.abs(dx) + Math.abs(dz) 
-                    });
+                    queue.push({ cx: ncx, cz: ncz, dist: Math.abs(dx) + Math.abs(dz) });
                 }
             }
         }
