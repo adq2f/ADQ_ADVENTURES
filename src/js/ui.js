@@ -45,7 +45,6 @@ export class UI {
         const knob = document.getElementById('joystick-knob');
         let baseRect = null;
         let touchId = null;
-
         const maxDistance = 50;
 
         const handleStart = (e) => {
@@ -81,10 +80,8 @@ export class UI {
             }
 
             knob.style.transform = `translate(${dx}px, ${dy}px)`;
-
             this.joystickX = dx / maxDistance;
             this.joystickY = dy / maxDistance;
-
             this.moveDirection.x = this.joystickX;
             this.moveDirection.z = -this.joystickY;
         };
@@ -94,8 +91,6 @@ export class UI {
             this.joystickActive = false;
             touchId = null;
             knob.style.transform = `translate(0, 0)`;
-            this.joystickX = 0;
-            this.joystickY = 0;
             this.moveDirection.x = 0;
             this.moveDirection.z = 0;
         };
@@ -104,7 +99,6 @@ export class UI {
         base.addEventListener('touchmove', handleMove, { passive: false });
         base.addEventListener('touchend', handleEnd, { passive: false });
         base.addEventListener('touchcancel', handleEnd, { passive: false });
-
         base.addEventListener('mousedown', handleStart);
         document.addEventListener('mousemove', handleMove);
         document.addEventListener('mouseup', handleEnd);
@@ -112,29 +106,12 @@ export class UI {
 
     setupButtons() {
         const jumpBtn = document.getElementById('btn-jump');
-        jumpBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (this.onJump) this.onJump();
-        });
-        jumpBtn.addEventListener('click', () => {
-            if (this.onJump) this.onJump();
-        });
+        jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (this.onJump) this.onJump(); });
+        jumpBtn.addEventListener('click', () => { if (this.onJump) this.onJump(); });
 
         const runBtn = document.getElementById('btn-run');
-        runBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (this.onRun) this.onRun(true);
-        });
-        runBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            if (this.onRun) this.onRun(false);
-        });
-        runBtn.addEventListener('mousedown', () => {
-            if (this.onRun) this.onRun(true);
-        });
-        runBtn.addEventListener('mouseup', () => {
-            if (this.onRun) this.onRun(false);
-        });
+        runBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (this.onRun) this.onRun(true); });
+        runBtn.addEventListener('touchend', (e) => { e.preventDefault(); if (this.onRun) this.onRun(false); });
 
         let crouchState = false;
         const crouchBtn = document.getElementById('btn-crouch');
@@ -149,21 +126,10 @@ export class UI {
         const camLeft = document.getElementById('btn-camera-left');
         const camRight = document.getElementById('btn-camera-right');
 
-        camLeft.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            cameraLeftHeld = true;
-        });
-        camLeft.addEventListener('touchend', () => {
-            cameraLeftHeld = false;
-        });
-
-        camRight.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            cameraRightHeld = true;
-        });
-        camRight.addEventListener('touchend', () => {
-            cameraRightHeld = false;
-        });
+        camLeft.addEventListener('touchstart', (e) => { e.preventDefault(); cameraLeftHeld = true; });
+        camLeft.addEventListener('touchend', () => { cameraLeftHeld = false; });
+        camRight.addEventListener('touchstart', (e) => { e.preventDefault(); cameraRightHeld = true; });
+        camRight.addEventListener('touchend', () => { cameraRightHeld = false; });
 
         this.cameraLeftHeld = () => cameraLeftHeld;
         this.cameraRightHeld = () => cameraRightHeld;
