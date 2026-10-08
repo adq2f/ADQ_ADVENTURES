@@ -8,8 +8,47 @@ body {
     overflow: hidden;
     background: #000;
     font-family: Arial, sans-serif;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 canvas {
     display: block;
+}
+
+/* Rotate Warning */
+#rotate-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-size: 24px;
+    text-align: center;
+    padding-top: 40%;
+    z-index: 9999;
+}
+
+/* Portrait e warning dekhabe */
+@media (orientation: portrait) {
+    #rotate-warning {
+        display: block;
+    }
+    #game-container {
+        display: none;
+    }
+}
+
+/* Landscape e game dekhabe */
+@media (orientation: landscape) {
+    #rotate-warning {
+        display: none;
+    }
+    #game-container {
+        display: block;
+    }
 }
